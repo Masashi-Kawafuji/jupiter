@@ -1,0 +1,28 @@
+{
+  "env": {
+    "node": true,
+    "es2020": true
+  },
+  "extends": ["airbnb-typescript/base"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "semi": "off",
+    "object-curly-spacing": "off",
+    "quotes": "off",
+    "@typescript-eslint/semi": "error",
+    "@typescript-eslint/object-curly-spacing": ["error", "always"],
+    "@typescript-eslint/quotes": ["error", "single"]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "moduleDirectory": [
+          "node_modules",
+          "src"
+        ]
+      }
+    }
+  }
+}
