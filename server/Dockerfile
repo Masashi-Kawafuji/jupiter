@@ -1,5 +1,7 @@
 FROM node:14.15.4
 
+RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
 WORKDIR /usr/src/app
 
 COPY package.json .
