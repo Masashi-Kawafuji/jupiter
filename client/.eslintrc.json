@@ -2,23 +2,26 @@
   "env": {
     "es2020": true
   },
-  "plugins": ["@typescript-eslint", "prettier"],
   "parser": "@typescript-eslint/parser",
+  "plugins": ["prettier", "@typescript-eslint"],
   "extends": [
-    "airbnb-base",
+    "airbnb",
     "plugin:@typescript-eslint/recommended",
     "plugin:import/typescript",
     "prettier",
-    "prettier/prettier",
-    "prettier/@typescript-eslint"
+    "prettier/react",
+    "prettier/@typescript-eslint",
+    "prettier/prettier"
   ],
   "parserOptions": {
-    "project": "./tsconfig.json",
-    "ecmaVersion": 2020
+    "project": "./tsconfig.json"
   },
   "rules": {
     "quotes": "off",
     "@typescript-eslint/quotes": ["error", "single"],
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "react/jsx-filename-extension": ["error", { "extensions": [".tsx"] }],
     "prettier/prettier": "error"
   },
   "settings": {
