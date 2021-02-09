@@ -1,16 +1,15 @@
-import express from 'express';
 import { createConnection } from 'typeorm';
-
-const app = express();
+import app from './app';
+import connectionOptions from './config/connectionOptions';
 
 const port = process.env.PORT || 3000;
 
 app.listen(port, async () => {
   /* eslint-disable no-console */
   try {
-    await createConnection();
-    console.log(`Server is listening on port ${port}`);
+    await createConnection(connectionOptions);
+    console.log(`Server is listening on port ${port}.`);
   } catch (error) {
-    console.error(error);
+    console.log(error);
   }
 });
