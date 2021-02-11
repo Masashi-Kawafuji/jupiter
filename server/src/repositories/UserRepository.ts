@@ -1,17 +1,13 @@
 import { EntityRepository, Repository } from 'typeorm';
-import bcrypt from 'bcrypt';
-import User, { UserCreationAttributes } from '../entities/user';
+import User from '../entities/user';
 
 @EntityRepository(User)
 class UserRepository extends Repository<User> {
-  private saltRounds = 10;
-
-  public saveWithPasswordHash(user: User): Promise<User | undefined> {
-    bcrypt.hash(user.password, this.saltRounds, (error, passwordHash) => {
-      if (error) throw error;
-      user.passwordHash = passwordHash;
-    });
-    return this.save(user);
+  public getGeneralProperties(id: number | string): Promise<User | undefined> {
+    return this.createQueryBuilder('user')
+      .select(['user.id', 'user.name', 'user.email', 'user.avatar'])
+      .where('user.id = :id', { id })
+      .getOne();
   }
 }
 

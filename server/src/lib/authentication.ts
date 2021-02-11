@@ -1,7 +1,8 @@
 import { Request, RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import { getManager } from 'typeorm';
+import { getCustomRepository } from 'typeorm';
 import User from '../entities/user';
+import UserRepository from '../repositories/UserRepository';
 
 type Payload = { userId: number };
 
@@ -10,8 +11,9 @@ export const getSessionUser: (req: Request) => Promise<User | undefined> = (
 ) => {
   const { authToken } = req.signedCookies;
   const { userId } = jwt.verify(authToken, 'hmac_secret') as Payload;
-  const entityManager = getManager();
-  return entityManager.findOne(User, userId);
+
+  const userRepository = getCustomRepository(UserRepository);
+  return userRepository.getGeneralProperties(userId);
 };
 
 export const requireLogin: RequestHandler = async (req, res, next) => {

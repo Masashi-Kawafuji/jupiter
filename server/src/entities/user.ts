@@ -65,9 +65,4 @@ class User {
   public passwordConfirmation: string;
 }
 
-export type UserCreationAttributes = Pick<User, 'name' | 'email' | 'avatar'> & {
-  password: string;
-  passwordConfirmation: string;
-};
-
 export default User;
