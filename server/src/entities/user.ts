@@ -7,7 +7,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import Post from './post';
-import Comment from './Comment';
+import Comment from './comment';
+import Tag from './tag';
 
 @Entity()
 class User {
@@ -21,7 +22,7 @@ class User {
   public email: string;
 
   @Column()
-  public hashedPassword: string;
+  public passwordHash: string;
 
   @Column({ nullable: true })
   public avatar: string;
@@ -30,10 +31,10 @@ class User {
   public activated: boolean;
 
   @Column()
-  public hashedActivateToken: string;
+  public activateTokenHash: string;
 
   @Column()
-  public hashedResetPasswordToken: string;
+  public resetPasswordTokenHash: string;
 
   @CreateDateColumn()
   public readonly createdAt: Date;
@@ -41,11 +42,15 @@ class User {
   @UpdateDateColumn()
   public readonly updatedAt: Date;
 
-  @OneToMany(() => Comment, (comment) => comment.user)
+  // relationships
+  @OneToMany(() => Post, (post) => post.user, { onDelete: 'CASCADE' })
+  public post: Post[];
+
+  @OneToMany(() => Comment, (comment) => comment.user, { onDelete: 'CASCADE' })
   public comments: Comment[];
 
-  @OneToMany(() => Post, (post) => post.user)
-  public post: Post[];
+  @OneToMany(() => Tag, (tag) => tag.user, { onDelete: 'CASCADE' })
+  public tags: Tag[];
 }
 
 export default User;

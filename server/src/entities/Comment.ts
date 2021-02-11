@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
+import Post from './post';
 import User from './user';
 
 @Entity()
@@ -22,8 +23,12 @@ class Comment {
   @UpdateDateColumn()
   public readonly updatedAt: Date;
 
+  // relationships
   @ManyToOne(() => User, (user) => user.comments)
-  public user: User;
+  public readonly user: User;
+
+  @ManyToOne(() => Post, (post) => post.comments)
+  public readonly post: Post;
 }
 
 export default Comment;

@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
+import Comment from './comment';
 import User from './user';
 
 @Entity()
@@ -28,8 +30,12 @@ class Post {
   @UpdateDateColumn()
   public readonly updatedAt: Date;
 
+  // relationships
   @ManyToOne(() => User, (user) => user.comments)
-  public user: User;
+  public readonly user: User;
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  public comments: Comment[];
 }
 
 export default Post;

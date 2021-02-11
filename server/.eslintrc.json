@@ -19,6 +19,7 @@
     "quotes": "off",
     "@typescript-eslint/quotes": ["error", "single"],
     "import/extensions": ["error", { "ts": "ignorePackages" }],
+    "import/no-cycle": "off",
     "prettier/prettier": "error"
   },
   "settings": {
