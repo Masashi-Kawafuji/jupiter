@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { IsEmail, Length } from 'class-validator';
+import IsPasswordCorrect from '../validations/IsPasswordCorrect';
 import Post from './post';
 import Comment from './comment';
 import Tag from './tag';
@@ -15,9 +17,11 @@ class User {
   @PrimaryGeneratedColumn()
   public id: number;
 
+  @Length(4, 20, { message: 'ユーザー名は4文字以上、20文字以下です。' })
   @Column({ length: 20 })
   public name: string;
 
+  @IsEmail()
   @Column({ unique: true })
   public email: string;
 
@@ -30,10 +34,10 @@ class User {
   @Column({ default: false })
   public activated: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   public activateTokenHash: string;
 
-  @Column()
+  @Column({ nullable: true })
   public resetPasswordTokenHash: string;
 
   @CreateDateColumn()
@@ -51,6 +55,19 @@ class User {
 
   @OneToMany(() => Tag, (tag) => tag.user, { onDelete: 'CASCADE' })
   public tags: Tag[];
+
+  @Length(8, 20)
+  @IsPasswordCorrect('passwordConfirmation', {
+    message: 'パスワードが確認用と異なります。',
+  })
+  public password: string;
+
+  public passwordConfirmation: string;
 }
+
+export type UserCreationAttributes = Pick<User, 'name' | 'email' | 'avatar'> & {
+  password: string;
+  passwordConfirmation: string;
+};
 
 export default User;
