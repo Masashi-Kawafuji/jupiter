@@ -18,7 +18,7 @@ app.use(
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 app.use(express.json());
 
-// routing
+// use routes
 app.use(routes);
 
 export default app;
