@@ -4,7 +4,8 @@ import * as authenticationController from '../controllers/authenticationControll
 const authenticationRouter = Router();
 
 authenticationRouter
-  .post('/login', authenticationController.login)
-  .delete('/logout', authenticationController.logout);
+  .post('/login', authenticationController.signIn)
+  .get('/autoSignIn', authenticationController.autoSignIn)
+  .delete('/logout', authenticationController.signOut);
 
 export default authenticationRouter;

@@ -10,10 +10,13 @@ export const getSessionUser: (req: Request) => Promise<User | undefined> = (
   req
 ) => {
   const { authToken } = req.signedCookies;
-  const { userId } = jwt.verify(authToken, 'hmac_secret') as Payload;
+  if (authToken) {
+    const { userId } = jwt.verify(authToken, 'hmac_secret') as Payload;
 
-  const userRepository = getCustomRepository(UserRepository);
-  return userRepository.getGeneralProperties(userId);
+    const userRepository = getCustomRepository(UserRepository);
+    return userRepository.getGeneralProperties(userId);
+  }
+  return Promise.resolve(undefined);
 };
 
 export const requireLogin: RequestHandler = async (req, res, next) => {

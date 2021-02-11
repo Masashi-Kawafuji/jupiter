@@ -3,8 +3,9 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
+import { getSessionUser } from '../lib/authentication';
 
-export const login: RequestHandler = async (req, res, next) => {
+export const signIn: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
   const userRepository = getCustomRepository(UserRepository);
   const user = await userRepository.findOne({ email });
@@ -35,6 +36,12 @@ export const login: RequestHandler = async (req, res, next) => {
   }
 };
 
-export const logout: RequestHandler = (req, res) => {
+export const autoSignIn: RequestHandler = async (req, res) => {
+  const user = await getSessionUser(req);
+  if (user) res.json(user);
+  else res.status(401).json({ message: 'ログインしてください。' });
+};
+
+export const signOut: RequestHandler = (req, res) => {
   res.clearCookie('authToken').end();
 };
