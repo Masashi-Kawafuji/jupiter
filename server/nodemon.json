@@ -2,7 +2,7 @@
   "ignore": ["node_modules"],
   "verbose": true,
   "execMap": {
-    "ts": "ts-node src/server.ts"
+    "ts": "ts-node -r dotenv/config src/server.ts"
   },
   "events": {
     "restart": "clear"

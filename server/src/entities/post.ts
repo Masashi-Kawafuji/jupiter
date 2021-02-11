@@ -34,7 +34,7 @@ class Post {
   @ManyToOne(() => User, (user) => user.comments)
   public readonly user: User;
 
-  @OneToMany(() => Comment, (comment) => comment.post)
+  @OneToMany(() => Comment, (comment) => comment.post, { onDelete: 'CASCADE' })
   public comments: Comment[];
 }
 
