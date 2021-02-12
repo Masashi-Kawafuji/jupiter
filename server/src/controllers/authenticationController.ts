@@ -43,5 +43,5 @@ export const autoSignIn: RequestHandler = async (req, res) => {
 };
 
 export const signOut: RequestHandler = (req, res) => {
-  res.clearCookie('authToken').end();
+  res.status(204).clearCookie('authToken').end();
 };
