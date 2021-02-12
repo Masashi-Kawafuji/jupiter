@@ -5,36 +5,41 @@ import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
 import { getSessionUser } from '../lib/authentication';
 
-export const signIn: RequestHandler = async (req, res, next) => {
+const verifyEmailAndPassword: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
   const userRepository = getCustomRepository(UserRepository);
   const user = await userRepository.findOne({ email });
-  try {
-    if (user) {
-      bcrypt.compare(password, user.passwordHash, (error, result) => {
-        if (error) next(error);
+  if (user) {
+    bcrypt.compare(password, user.passwordHash, (error, result) => {
+      if (error) next(error);
 
-        if (result) {
-          const token = jwt.sign({ userId: user.id }, 'hmac_secret');
-          res
-            .cookie('authToken', token, {
-              httpOnly: true,
-              signed: true,
-            })
-            .json(user);
-        } else {
-          throw new Error();
-        }
-      });
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    res
-      .status(422)
-      .json({ message: 'ユーザーが存在しないか、パスワードが誤っています。' });
+      if (result) {
+        const token = jwt.sign({ userId: user.id }, 'hmac_secret');
+        res
+          .cookie('authToken', token, {
+            httpOnly: true,
+            signed: true,
+          })
+          .json(user);
+      } else {
+        next();
+      }
+    });
+  } else {
+    next();
   }
 };
+
+const userDoesNotExistOrInCorrectPassword: RequestHandler = (req, res) => {
+  res
+    .status(422)
+    .json({ message: 'ユーザーが存在しないか、パスワードが誤っています。' });
+};
+
+export const signIn: RequestHandler[] = [
+  verifyEmailAndPassword,
+  userDoesNotExistOrInCorrectPassword,
+];
 
 export const autoSignIn: RequestHandler = async (req, res) => {
   const user = await getSessionUser(req);
