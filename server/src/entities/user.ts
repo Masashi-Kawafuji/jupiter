@@ -6,8 +6,9 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { IsEmail, Length } from 'class-validator';
+import { IsEmail, Length, Validate } from 'class-validator';
 import IsPasswordCorrect from '../validations/IsPasswordCorrect';
+import UniqueEmail from '../validations/UniqueEmail';
 import Post from './post';
 import Comment from './comment';
 import Tag from './tag';
@@ -22,6 +23,7 @@ class User {
   public name: string;
 
   @IsEmail()
+  @Validate(UniqueEmail)
   @Column({ unique: true })
   public email: string;
 

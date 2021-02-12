@@ -14,18 +14,17 @@ export const createUser: RequestHandler = async (req, res, next) => {
   user.password = password;
   user.passwordConfirmation = passwordConfirmation;
 
-  validate(user).then(async (errors) => {
-    if (errors.length > 0) {
-      res.status(422).json({ errors });
-    } else {
-      bcrypt.hash(user.password, 10, async (error, passwordHash) => {
-        if (error) next(error);
-        user.passwordHash = passwordHash;
-        const newUser = await manager.save(user);
-        res.status(201).json({ user: newUser });
-      });
-    }
-  });
+  const errors = await validate(user);
+  if (errors.length > 0) {
+    res.status(422).json({ errors });
+  } else {
+    bcrypt.hash(user.password, 10, async (error, passwordHash) => {
+      if (error) next(error);
+      user.passwordHash = passwordHash;
+      await manager.save(user);
+      res.status(201).json({ message: 'ユーザー登録が完了しました。' });
+    });
+  }
 };
 
 export const hoge = 'hoge';
