@@ -7,8 +7,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { IsEmail, Length, Validate } from 'class-validator';
-import IsPasswordCorrect from '../validations/IsPasswordCorrect';
 import UniqueEmail from '../validations/UniqueEmail';
+import PasswordEqualsToPasswordConfirmation from '../validations/PasswordEqualsToPasswordConfirmation';
 import Post from './post';
 import Comment from './comment';
 import Tag from './tag';
@@ -59,9 +59,7 @@ class User {
   public tags: Tag[];
 
   @Length(8, 20)
-  @IsPasswordCorrect('passwordConfirmation', {
-    message: 'パスワードが確認用と異なります。',
-  })
+  @Validate(PasswordEqualsToPasswordConfirmation)
   public password: string;
 
   public passwordConfirmation: string;
