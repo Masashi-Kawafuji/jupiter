@@ -63,6 +63,8 @@ class User {
   public password: string;
 
   public passwordConfirmation: string;
+
+  public activateToken: string;
 }
 
 export default User;

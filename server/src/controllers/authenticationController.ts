@@ -1,8 +1,9 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
-import { authenticateUser, getSessionUser } from '../services/userService';
+import { getSessionUser } from '../services/userService';
 
 export const signIn: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -10,7 +11,8 @@ export const signIn: RequestHandler = async (req, res) => {
   const user = await userRepository.findOne({ email });
 
   if (user) {
-    const isAuthenticated = await authenticateUser(user, password);
+    const isAuthenticated = await bcrypt.compare(password, user.passwordHash);
+
     if (isAuthenticated) {
       const token = jwt.sign({ userId: user.id }, 'hmac_secret');
       res
