@@ -9,11 +9,11 @@ import User from '../entities/user';
 class PasswordEqualsToPasswordConfirmation
   implements ValidatorConstraintInterface {
   /* eslint-disable class-methods-use-this */
-  validate(password: string, args: ValidationArguments) {
+  validate(password: string, args: ValidationArguments): boolean {
     return password === (args.object as User).passwordConfirmation;
   }
 
-  defaultMessage() {
+  defaultMessage(): string {
     return 'パスワードが確認用と異なります。';
   }
 }
