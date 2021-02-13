@@ -1,12 +1,10 @@
 import { RequestHandler } from 'express';
-import { getManager } from 'typeorm';
+import { getCustomRepository } from 'typeorm';
 import { validate } from 'class-validator';
-import bcrypt from 'bcrypt';
 import User from '../entities/user';
+import UserRepository from '../repositories/UserRepository';
 
-export const createUser: RequestHandler = async (req, res, next) => {
-  const manager = getManager();
-
+export const createUser: RequestHandler = async (req, res) => {
   const { name, email, password, passwordConfirmation } = req.body;
   const user = new User();
   user.name = name;
@@ -18,12 +16,9 @@ export const createUser: RequestHandler = async (req, res, next) => {
   if (errors.length > 0) {
     res.status(422).json({ errors });
   } else {
-    bcrypt.hash(user.password, 10, async (error, passwordHash) => {
-      if (error) next(error);
-      user.passwordHash = passwordHash;
-      await manager.save(user);
-      res.status(201).json({ message: 'ユーザー登録が完了しました。' });
-    });
+    const userRepository = getCustomRepository(UserRepository);
+    await userRepository.saveWithPasswordHash(user);
+    res.status(201).json({ message: 'ユーザー登録が完了しました。' });
   }
 };
 

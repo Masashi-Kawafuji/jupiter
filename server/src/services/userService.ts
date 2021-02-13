@@ -1,5 +1,6 @@
-import { Request, RequestHandler } from 'express';
+import { Request } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
@@ -19,8 +20,8 @@ export const getSessionUser: (req: Request) => Promise<User | undefined> = (
   }
 };
 
-export const requireLogin: RequestHandler = async (req, res, next) => {
-  const user = await getSessionUser(req);
-  if (user) next();
-  else res.status(401).json({ message: 'ログインしてください。' });
-};
+export const authenticateUser: (
+  user: User,
+  password: string
+) => Promise<boolean> = (user, password) =>
+  bcrypt.compare(password, user.passwordHash);

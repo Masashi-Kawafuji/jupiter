@@ -1,36 +1,33 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
-import { getSessionUser } from '../lib/authentication';
+import { authenticateUser, getSessionUser } from '../services/userService';
 
 const verifyEmailAndPassword: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
   const userRepository = getCustomRepository(UserRepository);
   const user = await userRepository.findOne({ email });
-  if (user) {
-    bcrypt.compare(password, user.passwordHash, (error, result) => {
-      if (error) next(error);
 
-      if (result) {
-        const token = jwt.sign({ userId: user.id }, 'hmac_secret');
-        res
-          .cookie('authToken', token, {
-            httpOnly: true,
-            signed: true,
-          })
-          .json(user);
-      } else {
-        next();
-      }
-    });
+  if (user) {
+    const isAuthenticated = await authenticateUser(user, password);
+    if (isAuthenticated) {
+      const token = jwt.sign({ userId: user.id }, 'hmac_secret');
+      res
+        .cookie('authToken', token, {
+          httpOnly: true,
+          signed: true,
+        })
+        .json(user);
+    } else {
+      next();
+    }
   } else {
     next();
   }
 };
 
-const userDoesNotExistOrInCorrectPassword: RequestHandler = (req, res) => {
+const userDoesNotExistOrWrongPassword: RequestHandler = (req, res) => {
   res
     .status(422)
     .json({ message: 'ユーザーが存在しないか、パスワードが誤っています。' });
@@ -38,7 +35,7 @@ const userDoesNotExistOrInCorrectPassword: RequestHandler = (req, res) => {
 
 export const signIn: RequestHandler[] = [
   verifyEmailAndPassword,
-  userDoesNotExistOrInCorrectPassword,
+  userDoesNotExistOrWrongPassword,
 ];
 
 export const autoSignIn: RequestHandler = async (req, res) => {

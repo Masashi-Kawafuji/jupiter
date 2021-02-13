@@ -1,4 +1,5 @@
 import { EntityRepository, Repository } from 'typeorm';
+import bcrypt from 'bcrypt';
 import User from '../entities/user';
 
 @EntityRepository(User)
@@ -8,6 +9,12 @@ class UserRepository extends Repository<User> {
       .select(['user.id', 'user.name', 'user.email', 'user.avatar'])
       .where('user.id = :id', { id })
       .getOne();
+  }
+
+  public async saveWithPasswordHash(user: User): Promise<User> {
+    const passwordHash = await bcrypt.hash(user.password, 10);
+    this.merge(user, { passwordHash });
+    return this.save(user);
   }
 }
 
