@@ -2,6 +2,8 @@ import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
+import { SentMessageInfo } from 'nodemailer';
+import mailer from '../config/mailer';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
 
@@ -25,3 +27,16 @@ export const authenticateUser: (
   password: string
 ) => Promise<boolean> = (user, password) =>
   bcrypt.compare(password, user.passwordHash);
+
+export const sendActivateToken: (user: User) => Promise<SentMessageInfo> = (
+  user
+) => {
+  const mailData = {
+    from: process.env.MAILER_USER,
+    to: user.email,
+    subject: 'アカウントを有効化してください。',
+    text: user.activateTokenHash,
+  };
+
+  return mailer.sendMail(mailData);
+};
