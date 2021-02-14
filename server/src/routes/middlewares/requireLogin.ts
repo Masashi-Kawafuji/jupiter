@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getSessionUser } from '../services/userService';
+import { getSessionUser } from '../../services/userService';
 
 const requireLogin: RequestHandler = async (req, res, next) => {
   const user = await getSessionUser(req);

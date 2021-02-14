@@ -16,7 +16,7 @@ export const signIn: RequestHandler = async (req, res) => {
     if (isAuthenticated) {
       const token = jwt.sign({ userId: user.id }, 'hmac_secret');
       res
-        .cookie('authToken', token, {
+        .cookie('auth-token', token, {
           httpOnly: true,
           signed: true,
         })
@@ -36,5 +36,5 @@ export const autoSignIn: RequestHandler = async (req, res) => {
 };
 
 export const signOut: RequestHandler = (req, res) => {
-  res.status(204).clearCookie('authToken').end();
+  res.status(204).clearCookie('auth-token').end();
 };

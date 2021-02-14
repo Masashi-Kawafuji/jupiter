@@ -3,7 +3,7 @@ import authenticationRouter from './authenticationRouter';
 import userRouter from './userRouter';
 import postRouter from './postRouter';
 import commentRouter from './commentRouter';
-import requireLogin from '../middlewares/requireLogin';
+import requireLogin from './middlewares/requireLogin';
 
 const routes = express();
 

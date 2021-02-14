@@ -4,7 +4,7 @@ import { validate } from 'class-validator';
 import bcrypt from 'bcrypt';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
-import sendActivateToken from '../services/mailerService';
+import { sendActivateToken } from '../services/userService';
 
 export const createUser: RequestHandler = async (req, res, next) => {
   const { name, email, password, passwordConfirmation } = req.body;
