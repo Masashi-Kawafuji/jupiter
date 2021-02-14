@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { getManager, getCustomRepository } from 'typeorm';
 import { validate } from 'class-validator';
-import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
 import { sendActivateToken } from '../services/userService';
@@ -21,7 +21,7 @@ export const createUser: RequestHandler = async (req, res, next) => {
     const userRepository = getCustomRepository(UserRepository);
     await userRepository.saveWithPasswordHash(user);
     try {
-      await sendActivateToken(user);
+      await sendActivateToken(email);
       res.status(201).json({ message: 'ユーザー登録が完了しました。' });
     } catch (error) {
       next(error);
@@ -30,23 +30,20 @@ export const createUser: RequestHandler = async (req, res, next) => {
 };
 
 export const activateUser: RequestHandler = async (req, res) => {
-  const { email, activateToken } = req.query as { [x: string]: string };
-  const userRepository = getCustomRepository(UserRepository);
-  const user = await userRepository.findOne({ email });
+  const { token } = req.query as { [x: string]: string };
 
-  if (user) {
-    const isActivateTokenValid = await bcrypt.compare(
-      activateToken,
-      user.activateTokenHash
-    );
+  try {
+    const { email } = jwt.verify(token, 'hmac_secret') as { email: string };
+    const userRepository = getCustomRepository(UserRepository);
+    const user = await userRepository.findOne({ email });
 
-    if (isActivateTokenValid) {
-      await userRepository.activate(user);
+    if (user) {
+      await userRepository.update(user.id, { activated: true });
       res.json({ message: 'アカウントの有効化に成功しました。' });
     }
+  } catch {
+    res.status(404).json({ message: 'URLが無効です。' });
   }
-
-  res.status(404).json({ message: 'URLが無効です。' });
 };
 
 export const updateUser: RequestHandler = async (req, res) => {

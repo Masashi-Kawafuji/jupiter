@@ -37,9 +37,6 @@ class User {
   public activated: boolean;
 
   @Column({ nullable: true })
-  public activateTokenHash: string;
-
-  @Column({ nullable: true })
   public resetPasswordTokenHash: string;
 
   @CreateDateColumn()

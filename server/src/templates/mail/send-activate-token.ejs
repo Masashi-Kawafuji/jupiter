@@ -1,4 +1,3 @@
 <p>下記URLにアクセスしてアカウントを有効化してください。</p>
-<% const url = ['http://localhost:8080/users/activate?email=', email,
-'&activateToken=', activateToken].join('') %>
+<% const url = ['http://localhost:8080/account/verify-email?token=' + token %>
 <a href=""><%= url %></a>

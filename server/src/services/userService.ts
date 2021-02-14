@@ -20,17 +20,16 @@ export function getSessionUser(req: Request): Promise<User | undefined> {
   }
 }
 
-export function sendActivateToken(user: User): Promise<SentMessageInfo> {
+export function sendActivateToken(email: string): Promise<SentMessageInfo> {
+  const token = jwt.sign({ email }, 'hmac_secret', { expiresIn: '24h' });
+
   return new Mailer().deliverMail({
-    to: user.email,
+    to: email,
     subject: 'アカウントを有効化してください。',
     templateFile: path.resolve(
       __dirname,
       '../templates/mail/send-activate-token.ejs'
     ),
-    data: {
-      email: user.email,
-      activateToken: user.activateToken,
-    },
+    data: { token },
   });
 }

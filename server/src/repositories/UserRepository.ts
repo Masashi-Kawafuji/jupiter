@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, UpdateResult } from 'typeorm';
+import { EntityRepository, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import User from '../entities/user';
 
@@ -15,13 +15,6 @@ class UserRepository extends Repository<User> {
     const passwordHash = await bcrypt.hash(user.password, 10);
     this.merge(user, { passwordHash });
     return this.save(user);
-  }
-
-  public activate(user: User): Promise<UpdateResult> {
-    return this.update(user.id, {
-      activated: true,
-      activateTokenHash: undefined,
-    });
   }
 }
 
