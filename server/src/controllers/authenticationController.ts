@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
-import { getSessionUser } from '../services/userService';
+import { getAuthenticatedUser } from '../services/userService';
 
 export const signIn: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -21,16 +21,20 @@ export const signIn: RequestHandler = async (req, res) => {
           signed: true,
         })
         .json(user);
+    } else {
+      res.status(422).json({
+        message: 'ユーザーが存在しないか、パスワードが誤っています。',
+      });
     }
+  } else {
+    res
+      .status(422)
+      .json({ message: 'ユーザーが存在しないか、パスワードが誤っています。' });
   }
-
-  res
-    .status(422)
-    .json({ message: 'ユーザーが存在しないか、パスワードが誤っています。' });
 };
 
 export const autoSignIn: RequestHandler = async (req, res) => {
-  const user = await getSessionUser(req);
+  const user = await getAuthenticatedUser(req);
   if (user) res.json(user);
   else res.status(401).json({ message: 'ログインしてください。' });
 };

@@ -4,7 +4,10 @@ import { validate } from 'class-validator';
 import jwt from 'jsonwebtoken';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
-import { sendActivateToken } from '../services/userService';
+import {
+  sendActivateTokenMail,
+  sendResetPasswordTokenMail,
+} from '../services/userService';
 
 export const createUser: RequestHandler = async (req, res, next) => {
   const { name, email, password, passwordConfirmation } = req.body;
@@ -21,7 +24,7 @@ export const createUser: RequestHandler = async (req, res, next) => {
     const userRepository = getCustomRepository(UserRepository);
     await userRepository.saveWithPasswordHash(user);
     try {
-      await sendActivateToken(email);
+      await sendActivateTokenMail(email);
       res.status(201).json({ message: 'ユーザー登録が完了しました。' });
     } catch (error) {
       next(error);
@@ -30,16 +33,18 @@ export const createUser: RequestHandler = async (req, res, next) => {
 };
 
 export const activateUser: RequestHandler = async (req, res) => {
-  const { token } = req.query as { [x: string]: string };
+  const { token } = req.query as Record<string, string>;
 
   try {
     const { email } = jwt.verify(token, 'hmac_secret') as { email: string };
-    const userRepository = getCustomRepository(UserRepository);
-    const user = await userRepository.findOne({ email });
+    const manager = getManager();
+    const user = await manager.findOne(User, { email, activated: false });
 
     if (user) {
-      await userRepository.update(user.id, { activated: true });
+      await manager.update(User, user.id, { activated: true });
       res.json({ message: 'アカウントの有効化に成功しました。' });
+    } else {
+      throw new Error();
     }
   } catch {
     res.status(404).json({ message: 'URLが無効です。' });
@@ -47,27 +52,82 @@ export const activateUser: RequestHandler = async (req, res) => {
 };
 
 export const updateUser: RequestHandler = async (req, res) => {
-  const { id } = req.params;
   const { name, email, avatar } = req.body;
+  const { user } = res.locals as { user: User };
+
   const manager = getManager();
-  const user = await manager.findOne(User, id);
+  manager.merge(User, user, { name, email, avatar });
+
+  const errors = await validate(user);
+
+  if (errors.length > 0) {
+    res.status(442).json(errors);
+  } else {
+    await manager.save(user);
+    res.json(user);
+  }
+};
+
+export const deleteUser: RequestHandler = async (req, res) => {
+  const { user } = res.locals as { user: User };
+  const manager = getManager();
+  await manager.delete(User, user.id);
+  res.status(204).end();
+};
+
+export const sendResetPasswordToken: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
+  const { email } = req.body;
+  const manager = getManager();
+  const user = await manager.findOne(User, { email });
+
   if (user) {
-    manager.merge(User, user, { name, email, avatar });
-    const errors = await validate(user);
-    if (errors.length > 0) {
-      res.status(442).json(errors);
-    } else {
-      await manager.save(user);
-      res.json(user);
+    try {
+      const token = jwt.sign({ userId: user.id }, user.passwordHash, {
+        expiresIn: '30m',
+      });
+      await sendResetPasswordTokenMail(email, token);
+      res.json({
+        message:
+          'パスワードのリセットページのURLが記載されたメールを送信しました。',
+      });
+    } catch (error) {
+      next(error);
     }
   } else {
     res.status(404).json({ message: 'ユーザーは見つかりませんでした。' });
   }
 };
 
-export const deleteUser: RequestHandler = async (req, res) => {
+export const changePassword: RequestHandler = async (req, res, next) => {
+  const { token, email } = req.query as Record<string, string>;
   const manager = getManager();
-  const { id } = req.params;
-  await manager.delete(User, id);
-  res.status(204).end();
+  const user = await manager.findOne(User, { email });
+
+  if (user) {
+    try {
+      const { userId } = jwt.verify(token, user.passwordHash) as {
+        userId: number;
+      };
+      if (userId) {
+        const { password, passwordConfirmation } = req.body;
+        user.password = password;
+        user.passwordConfirmation = passwordConfirmation;
+
+        const errors = await validate(user);
+        if (errors.length > 0) {
+          const userRepository = getCustomRepository(UserRepository);
+          await userRepository.saveWithPasswordHash(user);
+          res.json({ message: 'パスワードの変更に成功しました。' });
+        } else {
+          res.status(422).json(errors);
+        }
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 };

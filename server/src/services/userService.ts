@@ -7,12 +7,15 @@ import User from '../entities/user';
 import Mailer from '../lib/mailer';
 import UserRepository from '../repositories/UserRepository';
 
-type Payload = { userId: number };
+export async function getAuthenticatedUser(
+  req: Request
+): Promise<User | undefined> {
+  const authToken = req.signedCookies['auth-token'];
 
-export function getSessionUser(req: Request): Promise<User | undefined> {
-  const { authToken } = req.signedCookies;
   try {
-    const { userId } = jwt.verify(authToken, 'hmac_secret') as Payload;
+    const { userId } = jwt.verify(authToken, 'hmac_secret') as {
+      userId: number;
+    };
     const userRepository = getCustomRepository(UserRepository);
     return userRepository.getGeneralProperties(userId);
   } catch {
@@ -20,7 +23,7 @@ export function getSessionUser(req: Request): Promise<User | undefined> {
   }
 }
 
-export function sendActivateToken(email: string): Promise<SentMessageInfo> {
+export function sendActivateTokenMail(email: string): Promise<SentMessageInfo> {
   const token = jwt.sign({ email }, 'hmac_secret', { expiresIn: '24h' });
 
   return new Mailer().deliverMail({
@@ -28,7 +31,22 @@ export function sendActivateToken(email: string): Promise<SentMessageInfo> {
     subject: 'アカウントを有効化してください。',
     templateFile: path.resolve(
       __dirname,
-      '../templates/mail/send-activate-token.ejs'
+      '../templates/mail/activate-token.ejs'
+    ),
+    data: { token },
+  });
+}
+
+export function sendResetPasswordTokenMail(
+  email: string,
+  token: string
+): Promise<SentMessageInfo> {
+  return new Mailer().deliverMail({
+    to: email,
+    subject: 'パスワードをリセットしてください。',
+    templateFile: path.resolve(
+      __dirname,
+      '../templates/mail/reset-password.ejs'
     ),
     data: { token },
   });

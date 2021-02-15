@@ -1,10 +1,14 @@
 import { RequestHandler } from 'express';
-import { getSessionUser } from '../../services/userService';
+import { getAuthenticatedUser } from '../../services/userService';
 
 const requireLogin: RequestHandler = async (req, res, next) => {
-  const user = await getSessionUser(req);
-  if (user) next();
-  else res.status(401).json({ message: 'ログインしてください。' });
+  const user = await getAuthenticatedUser(req);
+  if (user) {
+    res.locals.user = user;
+    next();
+  } else {
+    res.status(401).json({ message: 'ログインしてください。' });
+  }
 };
 
 export default requireLogin;
