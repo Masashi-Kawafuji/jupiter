@@ -4,14 +4,18 @@ import userRouter from './userRouter';
 import postRouter from './postRouter';
 import commentRouter from './commentRouter';
 import requireLogin from './middlewares/requireLogin';
-import { createUser } from '../controllers/userController';
 
 const routes = express();
-routes.post('/users', createUser);
+
+routes.use(
+  requireLogin((req) => {
+    const regex = new RegExp('.*/me.*', 'i');
+    return regex.test(req.path);
+  })
+);
 routes.use(authenticationRouter);
-routes.all('*', requireLogin);
 routes.use(userRouter);
-routes.use('users/:userId', postRouter);
+routes.use('/users/me', postRouter);
 routes.use('/posts/:postId', commentRouter);
 
 export default routes;

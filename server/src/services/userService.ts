@@ -2,7 +2,6 @@ import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { SentMessageInfo } from 'nodemailer';
 import { getCustomRepository } from 'typeorm';
-import path from 'path';
 import User from '../entities/user';
 import Mailer from '../lib/mailer';
 import UserRepository from '../repositories/UserRepository';
@@ -25,15 +24,13 @@ export async function getAuthenticatedUser(
 
 export function sendActivateTokenMail(email: string): Promise<SentMessageInfo> {
   const token = jwt.sign({ email }, 'hmac_secret', { expiresIn: '24h' });
+  const url = `${process.env.HOST_NAME}/users/activate?token=${token}`;
 
-  return new Mailer().deliverMail({
+  return Mailer.deliverMail({
     to: email,
     subject: 'アカウントを有効化してください。',
-    templateFile: path.resolve(
-      __dirname,
-      '../templates/mail/activate-token.ejs'
-    ),
-    data: { token },
+    template: 'activate-token',
+    data: { url },
   });
 }
 
@@ -41,13 +38,11 @@ export function sendResetPasswordTokenMail(
   email: string,
   token: string
 ): Promise<SentMessageInfo> {
-  return new Mailer().deliverMail({
+  const url = `${process.env.HOST_NAME}/users/change-password?token=${token}`;
+  return Mailer.deliverMail({
     to: email,
     subject: 'パスワードをリセットしてください。',
-    templateFile: path.resolve(
-      __dirname,
-      '../templates/mail/reset-password.ejs'
-    ),
-    data: { token },
+    template: 'reset-password',
+    data: { url },
   });
 }

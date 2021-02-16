@@ -1,15 +1,16 @@
 import nodemailer, { SendMailOptions, SentMessageInfo } from 'nodemailer';
 import ejs from 'ejs';
+import path from 'path';
 import fs from 'fs';
 
 interface MailDeliveryOptions<T>
   extends Pick<SendMailOptions, 'to' | 'subject'> {
-  templateFile: string;
+  template: string;
   data: T | Record<string, any>;
 }
 
 class Mailer {
-  private transporter = nodemailer.createTransport({
+  private static transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     secure: true,
     auth: {
@@ -18,10 +19,15 @@ class Mailer {
     },
   });
 
-  public async deliverMail<T>(
+  static async deliverMail<T>(
     options: MailDeliveryOptions<T>
   ): Promise<SentMessageInfo> {
-    const template = await fs.readFileSync(options.templateFile, {
+    const templateFile = path.resolve(
+      __dirname,
+      '../templates/mail',
+      `${options.template}.ejs`
+    );
+    const template = await fs.readFileSync(templateFile, {
       encoding: 'utf8',
     });
     const html = ejs.render(template, options.data);
