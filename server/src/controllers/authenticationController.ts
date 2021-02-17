@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { getCustomRepository } from 'typeorm';
 import UserRepository from '../repositories/UserRepository';
-import { getAuthenticatedUser } from '../services/userService';
 
 export const signIn: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -34,7 +33,7 @@ export const signIn: RequestHandler = async (req, res) => {
 };
 
 export const autoSignIn: RequestHandler = async (req, res) => {
-  const user = await getAuthenticatedUser(req);
+  const { user } = res.locals;
   if (user) res.json(user);
   else res.status(401).json({ message: 'ログインしてください。' });
 };

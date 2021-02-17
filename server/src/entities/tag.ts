@@ -12,7 +12,7 @@ import Post from './post';
 @Entity()
 class Tag {
   @PrimaryGeneratedColumn()
-  public id: number;
+  public readonly id: number;
 
   @Column()
   public name: string;

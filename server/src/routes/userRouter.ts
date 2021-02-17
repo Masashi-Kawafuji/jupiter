@@ -5,13 +5,13 @@ const userRouter = Router();
 
 userRouter
   .post('/users', userController.createUser)
-  .get('/users/activate', userController.activateUser)
+  .get('/users/verify-email', userController.verifyEmail)
   .put('/users/me', userController.updateUser)
   .delete('/users/me', userController.deleteUser)
   .get(
     '/users/send-reset-password-token',
     userController.sendResetPasswordToken
   )
-  .put('/users/change-password', userController.changePassword);
+  .put('/users/reset-password', userController.resetPassword);
 
 export default userRouter;

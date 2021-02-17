@@ -22,14 +22,16 @@ export async function getAuthenticatedUser(
   }
 }
 
-export function sendActivateTokenMail(email: string): Promise<SentMessageInfo> {
+export function sendVerifyEmailTokenMail(
+  email: string
+): Promise<SentMessageInfo> {
   const token = jwt.sign({ email }, 'hmac_secret', { expiresIn: '24h' });
-  const url = `${process.env.HOST_NAME}/users/activate?token=${token}`;
+  const url = `${process.env.HOST_NAME}/users/vefiry-email?token=${token}`;
 
   return Mailer.deliverMail({
     to: email,
     subject: 'アカウントを有効化してください。',
-    template: 'activate-token',
+    template: 'verify-email-token',
     data: { url },
   });
 }

@@ -4,6 +4,7 @@ import userRouter from './userRouter';
 import postRouter from './postRouter';
 import commentRouter from './commentRouter';
 import requireLogin from './middlewares/requireLogin';
+import requireEmailVerification from './middlewares/requireEmailVerification';
 
 const routes = express();
 
@@ -13,9 +14,10 @@ routes.use(
     return regex.test(req.path);
   })
 );
+routes.use(requireEmailVerification);
 routes.use(authenticationRouter);
 routes.use(userRouter);
 routes.use('/users/me', postRouter);
-routes.use('/posts/:postId', commentRouter);
+routes.use('/users/me/posts/:postId', commentRouter);
 
 export default routes;

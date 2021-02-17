@@ -16,7 +16,7 @@ import Tag from './tag';
 @Entity()
 class User {
   @PrimaryGeneratedColumn()
-  public id: number;
+  public readonly id: number;
 
   @Length(4, 20, { message: 'ユーザー名は4文字以上、20文字以下です。' })
   @Column({ length: 20 })
@@ -34,10 +34,7 @@ class User {
   public avatar: string;
 
   @Column({ default: false })
-  public activated: boolean;
-
-  @Column({ nullable: true })
-  public resetPasswordTokenHash: string;
+  public isEmailVerified: boolean;
 
   @CreateDateColumn()
   public readonly createdAt: Date;
@@ -60,8 +57,6 @@ class User {
   public password: string;
 
   public passwordConfirmation: string;
-
-  public activateToken: string;
 }
 
 export default User;

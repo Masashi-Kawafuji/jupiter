@@ -9,8 +9,12 @@ function requireLogin(callback: RequireLoginCallback): RequestHandler {
   return async (req, res, next) => {
     if (callback(req)) {
       const user = await getAuthenticatedUser(req);
-      if (user) next();
-      else res.status(401).json({ message: 'ログインしてください。' });
+      if (user) {
+        res.locals.user = user;
+        next();
+      } else {
+        res.status(401).json({ message: 'ログインしてください。' });
+      }
     } else {
       next();
     }

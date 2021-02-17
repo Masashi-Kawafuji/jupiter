@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import User from '../entities/user';
 import UserRepository from '../repositories/UserRepository';
 import {
-  sendActivateTokenMail,
+  sendVerifyEmailTokenMail,
   sendResetPasswordTokenMail,
 } from '../services/userService';
 
@@ -24,7 +24,7 @@ export const createUser: RequestHandler = async (req, res, next) => {
     const userRepository = getCustomRepository(UserRepository);
     await userRepository.saveWithPasswordHash(user);
     try {
-      await sendActivateTokenMail(email);
+      await sendVerifyEmailTokenMail(email);
       res.status(201).json({ message: 'ユーザー登録が完了しました。' });
     } catch (error) {
       next(error);
@@ -32,16 +32,16 @@ export const createUser: RequestHandler = async (req, res, next) => {
   }
 };
 
-export const activateUser: RequestHandler = async (req, res) => {
+export const verifyEmail: RequestHandler = async (req, res) => {
   const { token } = req.query as Record<string, string>;
 
   try {
     const { email } = jwt.verify(token, 'hmac_secret') as { email: string };
     const manager = getManager();
-    const user = await manager.findOne(User, { email, activated: false });
+    const user = await manager.findOne(User, { email, isEmailVerified: false });
 
     if (user) {
-      await manager.update(User, user.id, { activated: true });
+      await manager.update(User, user.id, { isEmailVerified: true });
       res.json({ message: 'アカウントの有効化に成功しました。' });
     } else {
       throw new Error();
@@ -102,7 +102,7 @@ export const sendResetPasswordToken: RequestHandler = async (
   }
 };
 
-export const changePassword: RequestHandler = async (req, res, next) => {
+export const resetPassword: RequestHandler = async (req, res, next) => {
   const { token, email } = req.query as Record<string, string>;
   const manager = getManager();
   const user = await manager.findOne(User, { email });

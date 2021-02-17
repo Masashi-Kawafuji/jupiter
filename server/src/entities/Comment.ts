@@ -12,7 +12,7 @@ import User from './user';
 @Entity()
 class Comment {
   @PrimaryGeneratedColumn()
-  public id: number;
+  public readonly id: number;
 
   @Column('text')
   public body: string;

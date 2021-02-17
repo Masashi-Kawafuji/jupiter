@@ -13,7 +13,7 @@ import User from './user';
 @Entity()
 class Post {
   @PrimaryGeneratedColumn()
-  public id: number;
+  public readonly id: number;
 
   @Column('date')
   public date: Date;
