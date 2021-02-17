@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import Comment from './comment';
 import User from './user';
+import Image from './image';
 
 @Entity()
 class Post {
@@ -36,6 +37,9 @@ class Post {
 
   @OneToMany(() => Comment, (comment) => comment.post, { onDelete: 'CASCADE' })
   public comments: Comment[];
+
+  @OneToMany(() => Image, (image) => image.post, { onDelete: 'CASCADE' })
+  public images: Image[];
 }
 
 export default Post;
