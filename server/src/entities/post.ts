@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
+import { IsDate, IsNotEmpty } from 'class-validator';
 import Comment from './comment';
 import User from './user';
 import Image from './image';
@@ -17,9 +18,13 @@ class Post {
   public readonly id: number;
 
   @Column('date')
+  @IsDate()
   public date: Date;
 
   @Column('text', { nullable: true })
+  @IsNotEmpty({
+    message: '本文を入力してください。',
+  })
   public body: string;
 
   @Column({ nullable: true })

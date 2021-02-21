@@ -1,6 +1,8 @@
 FROM node:14.15.4
 
-RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && mkdir ~/.aws
+
+COPY .aws/credentials  ~/.aws
 
 WORKDIR /usr/src/app
 

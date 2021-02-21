@@ -17,7 +17,10 @@ export const createUser: RequestHandler = async (req, res, next) => {
   user.password = password;
   user.passwordConfirmation = passwordConfirmation;
 
-  const errors = await validate(user);
+  const errors = await validate(user, {
+    forbidUnknownValues: true,
+    validationError: { target: false },
+  });
   if (errors.length > 0) {
     res.status(422).json({ errors });
   } else {
@@ -58,7 +61,10 @@ export const updateUser: RequestHandler = async (req, res) => {
   const manager = getManager();
   manager.merge(User, user, { name, email, avatar });
 
-  const errors = await validate(user);
+  const errors = await validate(user, {
+    forbidUnknownValues: true,
+    validationError: { target: false },
+  });
 
   if (errors.length > 0) {
     res.status(442).json(errors);

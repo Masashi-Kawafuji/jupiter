@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { IsEmail, Length, Validate } from 'class-validator';
+import { IsNotEmpty, IsEmail, Length, Validate } from 'class-validator';
 import UniqueEmail from '../validations/UniqueEmail';
 import PasswordEqualsToPasswordConfirmation from '../validations/PasswordEqualsToPasswordConfirmation';
 import Post from './post';
@@ -56,6 +56,7 @@ class User {
   @Validate(PasswordEqualsToPasswordConfirmation)
   public password: string;
 
+  @IsNotEmpty()
   public passwordConfirmation: string;
 }
 

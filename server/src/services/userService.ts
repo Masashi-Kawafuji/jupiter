@@ -40,7 +40,7 @@ export function sendResetPasswordTokenMail(
   email: string,
   token: string
 ): Promise<SentMessageInfo> {
-  const url = `${process.env.HOST_NAME}/users/change-password?token=${token}`;
+  const url = `${process.env.HOST_NAME}/users/reset-password?token=${token}`;
   return Mailer.deliverMail({
     to: email,
     subject: 'パスワードをリセットしてください。',

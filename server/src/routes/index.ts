@@ -12,9 +12,9 @@ routes.use(
   requireLogin((req) => {
     const regex = new RegExp('.*/me.*', 'i');
     return regex.test(req.path);
-  })
+  }),
+  requireEmailVerification
 );
-routes.use(requireEmailVerification);
 routes.use(authenticationRouter);
 routes.use(userRouter);
 routes.use('/users/me', postRouter);
