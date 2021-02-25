@@ -1,27 +1,19 @@
 import {
-  S3Client,
   PutObjectCommand,
   PutObjectCommandOutput,
   DeleteObjectCommand,
   DeleteObjectCommandOutput,
 } from '@aws-sdk/client-s3';
-import sharp, { ResizeOptions } from 'sharp';
+import { ResizeOptions } from 'sharp';
+import BaseUploader from './base-uploader';
 
-abstract class ImageUploadService {
-  private client = new S3Client({ region: process.env.S3_REGION });
-
-  private bucket = process.env.S3_BUCKET;
-
+abstract class SingleUploader extends BaseUploader {
   public objectUrl: string;
 
-  constructor(public key: string, public resizeOptions: ResizeOptions) {
+  constructor(public key: string, resizeOptions: ResizeOptions) {
+    super(resizeOptions);
     this.key = key;
-    this.resizeOptions = resizeOptions;
-    this.objectUrl = `https://${this.bucket}.s3-${process.env.S3_REGION}.amazonaws.com/${this.key}`;
-  }
-
-  private resizeAndConvert(input: Buffer | string): Promise<Buffer> {
-    return sharp(input).resize(this.resizeOptions).jpeg().toBuffer();
+    this.objectUrl = this.getObjectUrl(this.key);
   }
 
   public async upload(input: Buffer | string): Promise<PutObjectCommandOutput> {
@@ -46,4 +38,4 @@ abstract class ImageUploadService {
   }
 }
 
-export default ImageUploadService;
+export default SingleUploader;

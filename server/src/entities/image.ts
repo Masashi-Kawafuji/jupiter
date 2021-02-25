@@ -22,7 +22,7 @@ class Image {
   @UpdateDateColumn()
   public readonly updatedAt: Date;
 
-  @ManyToOne(() => Post, (post) => post.images)
+  @ManyToOne(() => Post, (post) => post.images, { onDelete: 'CASCADE' })
   public post: Post;
 }
 

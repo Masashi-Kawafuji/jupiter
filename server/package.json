@@ -22,6 +22,7 @@
     "@types/nodemailer": "^6.4.0",
     "@types/sharp": "^0.27.1",
     "@types/supertest": "^2.0.10",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.14.1",
     "@typescript-eslint/parser": "^4.14.1",
     "cross-env": "^7.0.3",
@@ -54,6 +55,7 @@
     "nodemailer": "^6.4.18",
     "reflect-metadata": "^0.1.13",
     "sharp": "^0.27.2",
-    "typeorm": "^0.2.30"
+    "typeorm": "^0.2.30",
+    "uuid": "^8.3.2"
   }
 }

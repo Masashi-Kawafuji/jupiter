@@ -8,7 +8,7 @@ import {
   sendVerifyEmailTokenMail,
   sendResetPasswordTokenMail,
 } from '../services/userService';
-import AvatarUploadService from '../services/avatar-upload-service';
+import AvatarUploadService from '../services/AvatarUploadService';
 
 export const createUser: RequestHandler = async (req, res, next) => {
   const { name, email, password, passwordConfirmation } = req.body;
@@ -135,7 +135,11 @@ export const resetPassword: RequestHandler = async (req, res, next) => {
         user.password = password;
         user.passwordConfirmation = passwordConfirmation;
 
-        const errors = await validate(user);
+        const errors = await validate(user, {
+          forbidUnknownValues: true,
+          validationError: { target: false },
+          skipMissingProperties: true,
+        });
         if (errors.length > 0) {
           const userRepository = getCustomRepository(UserRepository);
           await userRepository.saveWithPasswordHash(user);
