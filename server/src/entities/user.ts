@@ -58,6 +58,8 @@ class User {
 
   @IsNotEmpty()
   public passwordConfirmation: string;
+
+  public avatarMetadata: Buffer;
 }
 
 export default User;

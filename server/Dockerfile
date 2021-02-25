@@ -1,8 +1,7 @@
 FROM node:14.15.4
 
-RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && mkdir ~/.aws
-
-COPY .aws/credentials  ~/.aws
+RUN apt-get update -qq && apt-get install -y libvips-dev && \
+  ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 WORKDIR /usr/src/app
 

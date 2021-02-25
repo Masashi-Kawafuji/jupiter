@@ -8,6 +8,7 @@ import {
   sendVerifyEmailTokenMail,
   sendResetPasswordTokenMail,
 } from '../services/userService';
+import AvatarUploadService from '../services/avatar-upload-service';
 
 export const createUser: RequestHandler = async (req, res, next) => {
   const { name, email, password, passwordConfirmation } = req.body;
@@ -54,12 +55,11 @@ export const verifyEmail: RequestHandler = async (req, res) => {
   }
 };
 
-export const updateUser: RequestHandler = async (req, res) => {
-  const { name, email, avatar } = req.body;
+export const updateUser: RequestHandler = async (req, res, next) => {
   const { user } = res.locals as { user: User };
 
   const manager = getManager();
-  manager.merge(User, user, { name, email, avatar });
+  manager.merge(User, user, req.body);
 
   const errors = await validate(user, {
     forbidUnknownValues: true,
@@ -69,6 +69,17 @@ export const updateUser: RequestHandler = async (req, res) => {
   if (errors.length > 0) {
     res.status(442).json(errors);
   } else {
+    if (user.avatarMetadata) {
+      const avatarUploader = new AvatarUploadService(user.id);
+
+      try {
+        await avatarUploader.upload();
+        user.avatar = 'avatar url';
+      } catch (error) {
+        next(error);
+      }
+    }
+
     await manager.save(user);
     res.json(user);
   }
