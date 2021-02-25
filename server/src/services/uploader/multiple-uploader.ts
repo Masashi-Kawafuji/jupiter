@@ -57,6 +57,7 @@ abstract class MultipleUploader extends BaseUploader {
 
       return this.client.send(command);
     }
+
     throw new Error('failed to delete objects.');
   }
 
