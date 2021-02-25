@@ -70,11 +70,11 @@ export const updateUser: RequestHandler = async (req, res, next) => {
   if (errors.length > 0) {
     res.status(442).json(errors);
   } else {
-    if (req.body.avatarBase64Encoded) {
+    if (req.file) {
       const avatarUploader = new AvatarUploadService(user.id);
 
       try {
-        await avatarUploader.upload(req.body.avatarBase64Encoded);
+        await avatarUploader.upload(req.file.buffer);
         user.avatar = avatarUploader.objectUrl;
       } catch (error) {
         next(error);
