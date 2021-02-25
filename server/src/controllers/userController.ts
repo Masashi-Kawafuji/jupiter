@@ -89,7 +89,7 @@ export const updateUser: RequestHandler = async (req, res, next) => {
 export const deleteUser: RequestHandler = async (req, res) => {
   const { user } = res.locals as { user: User };
   const manager = getManager();
-  await manager.delete(User, user.id);
+  await manager.remove(user);
   res.status(204).end();
 };
 
