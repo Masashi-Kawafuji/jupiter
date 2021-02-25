@@ -12,16 +12,19 @@ abstract class ImageUploadService {
 
   private bucket = process.env.S3_BUCKET;
 
+  public objectUrl: string;
+
   constructor(public key: string, public resizeOptions: ResizeOptions) {
     this.key = key;
     this.resizeOptions = resizeOptions;
+    this.objectUrl = `https://${this.bucket}.s3-${process.env.S3_REGION}.amazonaws.com/${this.key}`;
   }
 
-  private resizeAndConvert(input: Buffer): Promise<Buffer> {
+  private resizeAndConvert(input: Buffer | string): Promise<Buffer> {
     return sharp(input).resize(this.resizeOptions).jpeg().toBuffer();
   }
 
-  public async upload(input: Buffer): Promise<PutObjectCommandOutput> {
+  public async upload(input: Buffer | string): Promise<PutObjectCommandOutput> {
     const image = await this.resizeAndConvert(input);
 
     const command = new PutObjectCommand({

@@ -1,8 +1,14 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import routes from './routes';
+
+dotenv.config({
+  path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`),
+});
 
 const app = express();
 
@@ -15,7 +21,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.json());
 
 // use routes

@@ -64,17 +64,18 @@ export const updateUser: RequestHandler = async (req, res, next) => {
   const errors = await validate(user, {
     forbidUnknownValues: true,
     validationError: { target: false },
+    skipMissingProperties: true,
   });
 
   if (errors.length > 0) {
     res.status(442).json(errors);
   } else {
-    if (user.avatarMetadata) {
+    if (req.body.avatarBase64Encoded) {
       const avatarUploader = new AvatarUploadService(user.id);
 
       try {
-        await avatarUploader.upload();
-        user.avatar = 'avatar url';
+        await avatarUploader.upload(req.body.avatarBase64Encoded);
+        user.avatar = avatarUploader.objectUrl;
       } catch (error) {
         next(error);
       }
