@@ -24,10 +24,10 @@ class Comment {
   public readonly updatedAt: Date;
 
   // relationships
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   public readonly user: User;
 
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
   public readonly post: Post;
 }
 

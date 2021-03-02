@@ -16,11 +16,11 @@ abstract class MultipleUploader extends BaseUploader {
   constructor(
     resizeOptions: ResizeOptions,
     public prefix: string,
-    private getFileName: <T>(arg?: T) => string
+    private generateFilename: <T>(arg?: T) => string
   ) {
     super(resizeOptions);
     this.prefix = prefix;
-    this.getFileName = getFileName;
+    this.generateFilename = generateFilename;
   }
 
   public async upload(
@@ -28,7 +28,7 @@ abstract class MultipleUploader extends BaseUploader {
   ): Promise<PutObjectCommandOutput[]> {
     const uploads = inputs.map(async (input) => {
       const image = await this.resizeAndConvert(input);
-      const key = path.join(this.prefix, this.getFileName());
+      const key = path.join(this.prefix, this.generateFilename());
       this.objectUrls.push(this.getObjectUrl(key));
       const command = new PutObjectCommand({
         Bucket: this.bucket,
@@ -41,7 +41,7 @@ abstract class MultipleUploader extends BaseUploader {
     return Promise.all(uploads);
   }
 
-  public async delete(): Promise<DeleteObjectsCommandOutput> {
+  public async deleteAll(): Promise<DeleteObjectsCommandOutput> {
     const objects = await this.getObjects();
 
     if (objects.Contents) {
@@ -58,7 +58,7 @@ abstract class MultipleUploader extends BaseUploader {
       return this.client.send(command);
     }
 
-    throw new Error('failed to delete objects.');
+    throw new Error('The objects are not found.');
   }
 
   public async getObjects(): Promise<ListObjectsCommandOutput> {

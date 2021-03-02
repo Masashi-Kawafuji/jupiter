@@ -1,4 +1,4 @@
-import { PutObjectCommandOutput, S3Client } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import sharp, { ResizeOptions } from 'sharp';
 
 abstract class BaseUploader {
@@ -17,10 +17,6 @@ abstract class BaseUploader {
   protected getObjectUrl(key: string): string {
     return `https://${this.bucket}.s3-${process.env.S3_REGION}.amazonaws.com/${key}`;
   }
-
-  abstract upload(
-    input: Buffer | string | (Buffer | string)[]
-  ): Promise<PutObjectCommandOutput | PutObjectCommandOutput[]>;
 }
 
 export default BaseUploader;

@@ -40,10 +40,13 @@ class Post {
   @ManyToOne(() => User, (user) => user.comments)
   public readonly user: User;
 
-  @OneToMany(() => Comment, (comment) => comment.post, { onDelete: 'CASCADE' })
+  @OneToMany(() => Comment, (comment) => comment.post, { eager: true })
   public comments: Comment[];
 
-  @OneToMany(() => Image, (image) => image.post, { onDelete: 'CASCADE' })
+  @OneToMany(() => Image, (image) => image.post, {
+    eager: true,
+    cascade: true,
+  })
   public images: Image[];
 }
 

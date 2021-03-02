@@ -43,13 +43,13 @@ class User {
   public readonly updatedAt: Date;
 
   // relationships
-  @OneToMany(() => Post, (post) => post.user, { onDelete: 'CASCADE' })
+  @OneToMany(() => Post, (post) => post.user)
   public post: Post[];
 
-  @OneToMany(() => Comment, (comment) => comment.user, { onDelete: 'CASCADE' })
+  @OneToMany(() => Comment, (comment) => comment.user)
   public comments: Comment[];
 
-  @OneToMany(() => Tag, (tag) => tag.user, { onDelete: 'CASCADE' })
+  @OneToMany(() => Tag, (tag) => tag.user)
   public tags: Tag[];
 
   @Length(8, 20)

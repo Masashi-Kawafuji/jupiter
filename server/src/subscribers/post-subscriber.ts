@@ -17,6 +17,6 @@ export class PostSubscriber implements EntitySubscriberInterface<Post> {
 
   async afterRemove(event: RemoveEvent<Post>) {
     const postImageUploader = new PostImageUploadService(event.entityId);
-    await postImageUploader.delete();
+    await postImageUploader.deleteAll();
   }
 }
