@@ -6,6 +6,8 @@ abstract class BaseUploader {
 
   protected bucket = process.env.S3_BUCKET;
 
+  protected baseUrl = `https://${this.bucket}.s3-${process.env.S3_REGION}.amazonaws.com`;
+
   constructor(public resizeOptions: ResizeOptions) {
     this.resizeOptions = resizeOptions;
   }
@@ -15,7 +17,7 @@ abstract class BaseUploader {
   }
 
   protected getObjectUrl(key: string): string {
-    return `https://${this.bucket}.s3-${process.env.S3_REGION}.amazonaws.com/${key}`;
+    return `${this.baseUrl}/${key}`;
   }
 }
 

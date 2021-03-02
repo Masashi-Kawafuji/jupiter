@@ -28,7 +28,10 @@ class PostImageUploadService extends MultipleUploader {
   private isAmountOfImagesLessThanMaxAmount(
     files: Express.Multer.File[]
   ): boolean {
-    return this.post.images.length + files.length > this.maxAmount;
+    return (
+      this.post.images &&
+      this.post.images.length + files.length > this.maxAmount
+    );
   }
 }
 

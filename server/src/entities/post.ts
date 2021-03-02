@@ -15,7 +15,7 @@ import Image from './image';
 @Entity()
 class Post {
   @PrimaryGeneratedColumn()
-  public readonly id: number;
+  public id: number;
 
   @Column('date')
   @IsDate()
@@ -40,7 +40,11 @@ class Post {
   @ManyToOne(() => User, (user) => user.comments)
   public readonly user: User;
 
-  @OneToMany(() => Comment, (comment) => comment.post, { eager: true })
+  @OneToMany(() => Comment, (comment) => comment.post, {
+    eager: true,
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   public comments: Comment[];
 
   @OneToMany(() => Image, (image) => image.post, {

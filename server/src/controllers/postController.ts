@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getManager, IsNull } from 'typeorm';
+import { getManager, Not, IsNull } from 'typeorm';
 import { validate } from 'class-validator';
 import Post from '../entities/post';
 import User from '../entities/user';
@@ -10,7 +10,7 @@ export const postList: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
   const manager = getManager();
   const posts = await manager.find(Post, {
-    where: { user },
+    where: { user, publishedAt: Not(IsNull()) },
     order: {
       publishedAt: 'DESC',
     },
@@ -46,7 +46,7 @@ export const createPost: RequestHandler = async (req, res, next) => {
         const files = req.files as Express.Multer.File[];
         await postImageUploader.uploadFromRequestFiles(files);
         const images = postImageUploader.objectUrls.map((url) =>
-          manager.create(Image, { url, post })
+          manager.create(Image, { url })
         );
         post.images = images;
         await manager.save(post);
@@ -79,30 +79,36 @@ export const updatePost: RequestHandler = async (req, res, next) => {
       res.status(422).json(errors);
     } else {
       await manager.transaction(async (transactionEntityManager) => {
-        // const deletableImages = post.images.filter(
-        //   (image) => !req.body.images.includes(image)
-        // );
-        // await transactionEntityManager.remove(deletableImages);
+        try {
+          const postImageUploader = new PostImageUploadService(post);
 
-        if (req.files) {
-          // restrict quantity of images.
-          try {
+          // delete images.
+          const { deletableImageIds } = req.body;
+          deletableImageIds.forEach((id: string) => {
+            const index = post.images.findIndex(
+              (image) => image.id === parseInt(id, 10)
+            );
+            post.images.splice(index, 1);
+          });
+          await postImageUploader.delete(deletableImageIds);
+
+          if (req.files) {
+            // restrict quantity of images.
             const files = req.files as Express.Multer.File[];
-            const postImageUploader = new PostImageUploadService(post);
             await postImageUploader.uploadFromRequestFiles(files);
             const images = postImageUploader.objectUrls.map((url) =>
               transactionEntityManager.create(Image, { url })
             );
             post.images.push(...images);
             await transactionEntityManager.save(post);
-          } catch (error) {
-            next(error);
+          } else {
+            await transactionEntityManager.save(post);
           }
-        } else {
-          await transactionEntityManager.save(post);
-        }
 
-        res.json(post);
+          res.json(post);
+        } catch (error) {
+          next(error);
+        }
       });
     }
   } else {

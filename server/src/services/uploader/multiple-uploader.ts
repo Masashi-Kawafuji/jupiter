@@ -8,6 +8,8 @@ import {
 } from '@aws-sdk/client-s3';
 import { ResizeOptions } from 'sharp';
 import path from 'path';
+import { getManager } from 'typeorm';
+import Image from '../../entities/image';
 import BaseUploader from './base-uploader';
 
 abstract class MultipleUploader extends BaseUploader {
@@ -44,21 +46,38 @@ abstract class MultipleUploader extends BaseUploader {
   public async deleteAll(): Promise<DeleteObjectsCommandOutput> {
     const objects = await this.getObjects();
 
-    if (objects.Contents) {
-      const command = new DeleteObjectsCommand({
-        Bucket: this.bucket,
-        Delete: {
-          Objects: objects.Contents.map((content) => {
-            const { Key } = content;
-            return { Key };
-          }),
-        },
-      });
+    if (!objects.Contents) throw new Error('The objects are not found.');
 
-      return this.client.send(command);
-    }
+    const command = new DeleteObjectsCommand({
+      Bucket: this.bucket,
+      Delete: {
+        Objects: objects.Contents.map((content) => {
+          const { Key } = content;
+          return { Key };
+        }),
+      },
+    });
 
-    throw new Error('The objects are not found.');
+    return this.client.send(command);
+  }
+
+  public async delete(
+    imageIds: (number | string)[]
+  ): Promise<DeleteObjectsCommandOutput> {
+    const manager = getManager();
+    const deletableImages = await manager.findByIds(Image, imageIds);
+
+    const command = new DeleteObjectsCommand({
+      Bucket: this.bucket,
+      Delete: {
+        Objects: deletableImages.map((image) => {
+          const Key = image.url.replace(`${this.baseUrl}/`, '');
+          return { Key };
+        }),
+      },
+    });
+
+    return this.client.send(command);
   }
 
   public async getObjects(): Promise<ListObjectsCommandOutput> {
