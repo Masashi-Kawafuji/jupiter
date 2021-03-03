@@ -1,33 +1,34 @@
 import { RequestHandler } from 'express';
-import { getManager, Not, IsNull } from 'typeorm';
+import { getManager, getCustomRepository } from 'typeorm';
 import { validate } from 'class-validator';
 import Post from '../entities/post';
 import User from '../entities/user';
 import Image from '../entities/image';
 import PostImageUploadService from '../services/PostImageUploadService';
+import PostRepository from '../repositories/PostRepository';
 
 export const postList: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
-  const manager = getManager();
-  const posts = await manager.find(Post, {
-    where: { user, publishedAt: Not(IsNull()) },
-    order: {
-      publishedAt: 'DESC',
-    },
-  });
+  const postRepository = getCustomRepository(PostRepository);
+  const posts = await postRepository.findPublished(user);
   res.json(posts);
+};
+
+export const postDetail: RequestHandler = async (req, res) => {
+  const user = res.locals.user as User;
+  const postRepository = getCustomRepository(PostRepository);
+  const post = await postRepository.findOneWithComments(
+    req.params.postId,
+    user
+  );
+  res.json(post);
 };
 
 export const createPost: RequestHandler = async (req, res, next) => {
   const user = res.locals.user as User;
-  const { date, publish } = req.body;
-  const manager = getManager();
-  const post = manager.create(Post, {
-    ...req.body,
-    date: new Date(date),
-    publishedAt: publish ? new Date() : null,
-    user,
-  });
+  const post = new Post();
+  const postRepository = getCustomRepository(PostRepository);
+  postRepository.merge(post, { ...req.body, user });
 
   const errors = await validate(post, {
     forbidUnknownValues: true,
@@ -38,6 +39,7 @@ export const createPost: RequestHandler = async (req, res, next) => {
   if (errors.length > 0) {
     res.status(422).json(errors);
   } else {
+    const manager = getManager();
     await manager.save(post);
     // upload images
     if (req.files) {
@@ -45,9 +47,10 @@ export const createPost: RequestHandler = async (req, res, next) => {
       try {
         const files = req.files as Express.Multer.File[];
         await postImageUploader.uploadFromRequestFiles(files);
-        const images = postImageUploader.objectUrls.map((url) =>
-          manager.create(Image, { url })
-        );
+        const urls = postImageUploader.objectUrls.map((url) => {
+          return { url };
+        });
+        const images = manager.create(Image, urls);
         post.images = images;
         await manager.save(post);
       } catch (error) {
@@ -67,7 +70,8 @@ export const updatePost: RequestHandler = async (req, res, next) => {
   });
 
   if (post) {
-    manager.merge(Post, post, { ...req.body, date: new Date(req.body.date) });
+    const postRepository = getCustomRepository(PostRepository);
+    postRepository.merge(post, { ...req.body });
 
     const errors = await validate(post, {
       forbidUnknownValues: true,
@@ -78,38 +82,37 @@ export const updatePost: RequestHandler = async (req, res, next) => {
     if (errors.length > 0) {
       res.status(422).json(errors);
     } else {
-      await manager.transaction(async (transactionEntityManager) => {
-        try {
-          const postImageUploader = new PostImageUploadService(post);
+      try {
+        const postImageUploader = new PostImageUploadService(post);
 
-          // delete images.
-          const { deletableImageIds } = req.body;
+        // delete images.
+        const { deletableImageIds } = req.body;
+        if (deletableImageIds) {
           deletableImageIds.forEach((id: string) => {
             const index = post.images.findIndex(
               (image) => image.id === parseInt(id, 10)
             );
             post.images.splice(index, 1);
           });
+
           await postImageUploader.delete(deletableImageIds);
-
-          if (req.files) {
-            // restrict quantity of images.
-            const files = req.files as Express.Multer.File[];
-            await postImageUploader.uploadFromRequestFiles(files);
-            const images = postImageUploader.objectUrls.map((url) =>
-              transactionEntityManager.create(Image, { url })
-            );
-            post.images.push(...images);
-            await transactionEntityManager.save(post);
-          } else {
-            await transactionEntityManager.save(post);
-          }
-
-          res.json(post);
-        } catch (error) {
-          next(error);
         }
-      });
+
+        if (req.files) {
+          // restrict quantity of images.
+          const files = req.files as Express.Multer.File[];
+          await postImageUploader.uploadFromRequestFiles(files);
+          const images = postImageUploader.objectUrls.map((url) =>
+            manager.create(Image, { url })
+          );
+          post.images.push(...images);
+        }
+
+        await manager.save(post);
+        res.json(post);
+      } catch (error) {
+        next(error);
+      }
     }
   } else {
     res.status(404).json({ message: '指定された投稿は見つかりませんでした。' });

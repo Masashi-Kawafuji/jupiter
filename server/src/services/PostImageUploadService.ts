@@ -1,6 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { PutObjectCommandOutput } from '@aws-sdk/client-s3';
+import {
+  PutObjectCommandOutput,
+  DeleteObjectsCommand,
+  DeleteObjectsCommandOutput,
+} from '@aws-sdk/client-s3';
+import { getManager } from 'typeorm';
 import Post from '../entities/post';
+import Image from '../entities/image';
 import MultipleUploader from './uploader/multiple-uploader';
 
 class PostImageUploadService extends MultipleUploader {
@@ -17,7 +23,7 @@ class PostImageUploadService extends MultipleUploader {
   public uploadFromRequestFiles(
     files: Express.Multer.File[]
   ): Promise<PutObjectCommandOutput[]> {
-    if (this.isAmountOfImagesLessThanMaxAmount(files)) {
+    if (this.isNotAmountOfImagesLessThanMaxAmount(files)) {
       throw new Error(`The post must hold less than ${this.maxAmount} images.`);
     }
 
@@ -25,7 +31,26 @@ class PostImageUploadService extends MultipleUploader {
     return this.upload(buffers);
   }
 
-  private isAmountOfImagesLessThanMaxAmount(
+  public async delete(
+    imageIds: (number | string)[]
+  ): Promise<DeleteObjectsCommandOutput> {
+    const manager = getManager();
+    const deletableImages = await manager.findByIds(Image, imageIds);
+
+    const command = new DeleteObjectsCommand({
+      Bucket: this.bucket,
+      Delete: {
+        Objects: deletableImages.map((image) => {
+          const Key = image.url.replace(`${this.baseUrl}/`, '');
+          return { Key };
+        }),
+      },
+    });
+
+    return this.client.send(command);
+  }
+
+  private isNotAmountOfImagesLessThanMaxAmount(
     files: Express.Multer.File[]
   ): boolean {
     return (

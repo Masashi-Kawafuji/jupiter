@@ -8,8 +8,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { ResizeOptions } from 'sharp';
 import path from 'path';
-import { getManager } from 'typeorm';
-import Image from '../../entities/image';
 import BaseUploader from './base-uploader';
 
 abstract class MultipleUploader extends BaseUploader {
@@ -53,25 +51,6 @@ abstract class MultipleUploader extends BaseUploader {
       Delete: {
         Objects: objects.Contents.map((content) => {
           const { Key } = content;
-          return { Key };
-        }),
-      },
-    });
-
-    return this.client.send(command);
-  }
-
-  public async delete(
-    imageIds: (number | string)[]
-  ): Promise<DeleteObjectsCommandOutput> {
-    const manager = getManager();
-    const deletableImages = await manager.findByIds(Image, imageIds);
-
-    const command = new DeleteObjectsCommand({
-      Bucket: this.bucket,
-      Delete: {
-        Objects: deletableImages.map((image) => {
-          const Key = image.url.replace(`${this.baseUrl}/`, '');
           return { Key };
         }),
       },
