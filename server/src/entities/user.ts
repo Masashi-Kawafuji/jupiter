@@ -44,7 +44,7 @@ class User {
 
   // relationships
   @OneToMany(() => Post, (post) => post.user)
-  public post: Post[];
+  public posts: Post[];
 
   @OneToMany(() => Comment, (comment) => comment.user)
   public comments: Comment[];

@@ -5,16 +5,15 @@ import Comment from '../entities/comment';
 import Post from '../entities/post';
 import User from '../entities/user';
 
-type commentControllerLocals = {
+type CommentControllerLocals = {
   user: User;
   post: Post;
 };
 
 export const createComment: RequestHandler = async (req, res) => {
-  const { user, post } = res.locals as commentControllerLocals;
-  const { body } = req.body;
+  const { user, post } = res.locals as CommentControllerLocals;
   const manager = getManager();
-  const comment = manager.create(Comment, { body, post, user });
+  const comment = manager.create(Comment, { ...req.body, post, user });
 
   const errors = await validate(comment, {
     forbidUnknownValues: true,
@@ -30,9 +29,9 @@ export const createComment: RequestHandler = async (req, res) => {
 };
 
 export const deleteComment: RequestHandler = async (req, res) => {
-  const { user, post } = res.locals as commentControllerLocals;
+  const { user, post } = res.locals as CommentControllerLocals;
   const manager = getManager();
-  const comment = await manager.findOneOrFail(Comment, req.params.commentId, {
+  const comment = await manager.findOne(Comment, req.params.commentId, {
     where: { user, post },
   });
 

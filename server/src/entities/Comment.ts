@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
+import { IsNotEmpty } from 'class-validator';
 import Post from './post';
 import User from './user';
 
@@ -15,6 +16,7 @@ class Comment {
   public readonly id: number;
 
   @Column('text')
+  @IsNotEmpty({ message: '本文が入力されていません。' })
   public body: string;
 
   @CreateDateColumn()

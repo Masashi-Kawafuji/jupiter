@@ -7,21 +7,43 @@ import Image from '../entities/image';
 import PostImageUploadService from '../services/PostImageUploadService';
 import PostRepository from '../repositories/PostRepository';
 
+type SearchQuery = Record<'query' | 'offset' | 'limit', string>;
+
+export const searchByPlainText: RequestHandler = async (req, res) => {
+  const user = res.locals.user as User;
+  const { query, offset, limit } = req.query as SearchQuery;
+  const postRepository = getCustomRepository(PostRepository);
+  const posts = await postRepository.search(query, offset, limit, { user });
+  res.json(posts);
+};
+
+export const searchByTagName: RequestHandler = async (req, res) => {
+  const user = res.locals.user as User;
+  const { tagName } = req.params;
+  const { offset, limit } = req.query as Omit<SearchQuery, 'query'>;
+  const postRepository = getCustomRepository(PostRepository);
+  const posts = await postRepository.findByTagName(tagName, offset, limit, {
+    user,
+  });
+  res.json(posts);
+};
+
 export const postList: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
   const postRepository = getCustomRepository(PostRepository);
-  const posts = await postRepository.findPublished(user);
+  const posts = await postRepository.findPublished({ user });
   res.json(posts);
 };
 
 export const postDetail: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
   const postRepository = getCustomRepository(PostRepository);
-  const post = await postRepository.findOneWithComments(
-    req.params.postId,
-    user
-  );
-  res.json(post);
+  const post = await postRepository.findOneWithComments(req.params.postId, {
+    user,
+  });
+
+  if (post) res.json(post);
+  else res.status(404).json({ message: '投稿は見つかりませんでした。' });
 };
 
 export const createPost: RequestHandler = async (req, res, next) => {

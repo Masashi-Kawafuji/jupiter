@@ -40,7 +40,7 @@ class Post {
   public readonly updatedAt: Date;
 
   // relationships
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   public readonly user: User;
 
   @OneToMany(() => Comment, (comment) => comment.post, { cascade: true })
@@ -53,9 +53,7 @@ class Post {
   })
   public images: Image[];
 
-  @ManyToMany(() => Tag, {
-    cascade: true,
-  })
+  @ManyToMany(() => Tag, (tag) => tag.posts, { cascade: true })
   @JoinTable()
   public tags: Tag[];
 }
