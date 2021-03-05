@@ -13,7 +13,7 @@ type CommentControllerLocals = {
 export const createComment: RequestHandler = async (req, res) => {
   const { user, post } = res.locals as CommentControllerLocals;
   const manager = getManager();
-  const comment = manager.create(Comment, { ...req.body, post, user });
+  const comment = manager.create(Comment, { ...req.body, user, post });
 
   const errors = await validate(comment, {
     forbidUnknownValues: true,

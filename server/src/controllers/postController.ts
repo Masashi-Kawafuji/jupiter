@@ -6,25 +6,29 @@ import User from '../entities/user';
 import Image from '../entities/image';
 import PostImageUploadService from '../services/PostImageUploadService';
 import PostRepository from '../repositories/PostRepository';
+import TagRepository from '../repositories/TagRepository';
 
-type SearchQuery = Record<'query' | 'offset' | 'limit', string>;
+type SearchQuery = Record<'q' | 'offset' | 'limit', string>;
 
 export const searchByPlainText: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
-  const { query, offset, limit } = req.query as SearchQuery;
+  const { q, offset, limit } = req.query as SearchQuery;
   const postRepository = getCustomRepository(PostRepository);
-  const posts = await postRepository.search(query, offset, limit, { user });
+  const posts = await postRepository.search(q, offset, limit, { user });
   res.json(posts);
 };
 
 export const searchByTagName: RequestHandler = async (req, res) => {
   const user = res.locals.user as User;
   const { tagName } = req.params;
-  const { offset, limit } = req.query as Omit<SearchQuery, 'query'>;
+  const { offset, limit } = req.query as Omit<SearchQuery, 'q'>;
   const postRepository = getCustomRepository(PostRepository);
-  const posts = await postRepository.findByTagName(tagName, offset, limit, {
-    user,
-  });
+  const posts = await postRepository.findByTagName(
+    tagName,
+    offset,
+    limit,
+    user.id
+  );
   res.json(posts);
 };
 
@@ -35,12 +39,16 @@ export const postList: RequestHandler = async (req, res) => {
   res.json(posts);
 };
 
-export const postDetail: RequestHandler = async (req, res) => {
+export const postDetail: RequestHandler<{ postId: Post['id'] }> = async (
+  req,
+  res
+) => {
   const user = res.locals.user as User;
   const postRepository = getCustomRepository(PostRepository);
-  const post = await postRepository.findOneWithComments(req.params.postId, {
-    user,
-  });
+  const post = await postRepository.findOneWithComments(
+    req.params.postId,
+    user.id
+  );
 
   if (post) res.json(post);
   else res.status(404).json({ message: '投稿は見つかりませんでした。' });
@@ -62,23 +70,29 @@ export const createPost: RequestHandler = async (req, res, next) => {
     res.status(422).json(errors);
   } else {
     const manager = getManager();
-    await manager.save(post);
-    // upload images
-    if (req.files) {
-      const postImageUploader = new PostImageUploadService(post);
-      try {
-        const files = req.files as Express.Multer.File[];
-        await postImageUploader.uploadFromRequestFiles(files);
-        const urls = postImageUploader.objectUrls.map((url) => {
-          return { url };
-        });
-        const images = manager.create(Image, urls);
-        post.images = images;
-        await manager.save(post);
-      } catch (error) {
-        next(error);
+    await manager.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(post);
+      // upload images
+      if (req.files) {
+        const postImageUploader = new PostImageUploadService(post);
+        try {
+          const files = req.files as Express.Multer.File[];
+          await postImageUploader.uploadFromRequestFiles(files);
+          const urls = postImageUploader.objectUrls.map((url) => ({ url }));
+          const images = transactionalEntityManager.create(Image, urls);
+          post.images = images;
+          // save tags
+          const tagRepository = transactionalEntityManager.getCustomRepository(
+            TagRepository
+          );
+          const tags = await tagRepository.findAndCreate(post, user);
+          post.tags = tags;
+          await transactionalEntityManager.save(post);
+        } catch (error) {
+          next(error);
+        }
       }
-    }
+    });
 
     res.status(201).json(post);
   }
@@ -104,9 +118,9 @@ export const updatePost: RequestHandler = async (req, res, next) => {
     if (errors.length > 0) {
       res.status(422).json(errors);
     } else {
-      try {
-        const postImageUploader = new PostImageUploadService(post);
+      const postImageUploader = new PostImageUploadService(post);
 
+      try {
         // delete images.
         const { deletableImageIds } = req.body;
         if (deletableImageIds) {
@@ -124,11 +138,14 @@ export const updatePost: RequestHandler = async (req, res, next) => {
           // restrict quantity of images.
           const files = req.files as Express.Multer.File[];
           await postImageUploader.uploadFromRequestFiles(files);
-          const images = postImageUploader.objectUrls.map((url) =>
-            manager.create(Image, { url })
-          );
+          const urls = postImageUploader.objectUrls.map((url) => ({ url }));
+          const images = manager.create(Image, urls);
           post.images.push(...images);
         }
+
+        const tagRepository = getCustomRepository(TagRepository);
+        const tags = await tagRepository.findAndCreate(post, user);
+        post.tags = tags;
 
         await manager.save(post);
         res.json(post);

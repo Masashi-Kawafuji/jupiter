@@ -2,7 +2,7 @@
   "ignore": ["node_modules"],
   "verbose": true,
   "execMap": {
-    "ts": "ts-node src/server.ts"
+    "ts": "DEBUG=express:* ts-node src/server.ts"
   },
   "events": {
     "restart": "clear"

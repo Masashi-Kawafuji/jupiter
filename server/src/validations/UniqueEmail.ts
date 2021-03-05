@@ -10,9 +10,7 @@ class UniqueEmail implements ValidatorConstraintInterface {
   /* eslint-disable class-methods-use-this */
   public validate(email: string): Promise<boolean> {
     const manager = getManager();
-    return manager.findOne(User, { email }).then((user) => {
-      return !user;
-    });
+    return manager.findOne(User, { email }).then((user) => !user);
   }
 
   public defaultMessage(): string {

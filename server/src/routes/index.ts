@@ -17,7 +17,6 @@ routes.use(
 );
 routes.use(authenticationRouter);
 routes.use(userRouter);
-routes.use('/users/me', postRouter);
-routes.use('/users/me/posts/:postId', commentRouter);
+routes.use('/users/me', postRouter, commentRouter);
 
 export default routes;

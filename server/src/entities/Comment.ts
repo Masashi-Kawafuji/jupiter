@@ -13,17 +13,17 @@ import User from './user';
 @Entity()
 class Comment {
   @PrimaryGeneratedColumn()
-  public readonly id: number;
+  public id: number;
 
   @Column('text')
   @IsNotEmpty({ message: '本文が入力されていません。' })
   public body: string;
 
   @CreateDateColumn()
-  public readonly createdAt: Date;
+  public createdAt: Date;
 
   @UpdateDateColumn()
-  public readonly updatedAt: Date;
+  public updatedAt: Date;
 
   // relationships
   @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })

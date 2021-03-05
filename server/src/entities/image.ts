@@ -11,19 +11,19 @@ import Post from './post';
 @Entity()
 class Image {
   @PrimaryGeneratedColumn()
-  public readonly id: number;
+  public id: number;
 
   @Column()
   public url: string;
 
   @CreateDateColumn()
-  public readonly createdAt: Date;
+  public createdAt: Date;
 
   @UpdateDateColumn()
-  public readonly updatedAt: Date;
+  public updatedAt: Date;
 
   @ManyToOne(() => Post, (post) => post.images, { onDelete: 'CASCADE' })
-  public post: Post;
+  public readonly post: Post;
 }
 
 export default Image;

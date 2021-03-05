@@ -16,7 +16,7 @@ import Tag from './tag';
 @Entity()
 class User {
   @PrimaryGeneratedColumn()
-  public readonly id: number;
+  public id: number;
 
   @Length(4, 20, { message: 'ユーザー名は4文字以上、20文字以下です。' })
   @Column({ length: 20 })
@@ -37,10 +37,10 @@ class User {
   public isEmailVerified: boolean;
 
   @CreateDateColumn()
-  public readonly createdAt: Date;
+  public createdAt: Date;
 
   @UpdateDateColumn()
-  public readonly updatedAt: Date;
+  public updatedAt: Date;
 
   // relationships
   @OneToMany(() => Post, (post) => post.user)

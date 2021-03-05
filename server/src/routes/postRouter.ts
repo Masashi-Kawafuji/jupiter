@@ -7,9 +7,9 @@ const postRouter = Router();
 const upload = multer();
 
 postRouter
-  .get('/posts', postController.searchByPlainText)
+  .get('/posts/search', postController.searchByPlainText)
   .get('/posts/tags/:tagName', postController.searchByTagName)
-  // .get('/posts', postController.postList)
+  .get('/posts', postController.postList)
   .get('/posts/:postId', postController.postDetail)
   .post('/posts', upload.array('image', 4), postController.createPost)
   .put('/posts/:postId', upload.array('image'), postController.updatePost)

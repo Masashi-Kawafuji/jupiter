@@ -34,10 +34,10 @@ class Post {
   public publishedAt: Date;
 
   @CreateDateColumn()
-  public readonly createdAt: Date;
+  public createdAt: Date;
 
   @UpdateDateColumn()
-  public readonly updatedAt: Date;
+  public updatedAt: Date;
 
   // relationships
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })

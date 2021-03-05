@@ -5,7 +5,6 @@ import {
   IsNull,
   Like,
   FindConditions,
-  DeepPartial,
 } from 'typeorm';
 import Post from '../entities/post';
 import Tag from '../entities/tag';
@@ -18,7 +17,7 @@ type PostFormData = Record<'date' | 'body' | 'publish', string> & {
 @EntityRepository(Post)
 class PostRepository extends AbstractRepository<Post> {
   public search(
-    query: string,
+    q: string,
     offset: string,
     limit: string,
     conditions: FindConditions<Post>
@@ -26,7 +25,7 @@ class PostRepository extends AbstractRepository<Post> {
     return this.repository.find({
       where: {
         ...conditions,
-        body: Like(`%${query}%`),
+        body: Like(`%${q}%`),
         publishedAt: Not(IsNull()),
       },
       skip: parseInt(offset, 10),
@@ -41,23 +40,20 @@ class PostRepository extends AbstractRepository<Post> {
     tagName: Tag['name'],
     offset: string,
     limit: string,
-    conditions: DeepPartial<Post>
+    userId: User['id']
   ): Promise<Post[]> {
-    const { user } = conditions;
-    if (!user) throw new Error('The user does not exist.');
-
     return this.repository
       .createQueryBuilder('post')
       .innerJoinAndSelect(
         'post_tags_tag',
-        'joinTable',
-        'joinTable.postId = post.id'
+        'post_tags_tag',
+        'post_tags_tag.postId = post.id'
       )
-      .innerJoinAndSelect('tag', 'tag', 'tag.id = joinTable.tagId')
-      .where('post.userId = :userId AND tag.name = :tagName', {
-        userId: user.id,
-        tagName: `#${tagName}`,
-      })
+      .innerJoinAndSelect('tag', 'tag', 'tag.id = post_tags_tag.tagId')
+      .where('post.userId = :userId', { userId })
+      .andWhere('post.publishedAt IS NOT NULL')
+      .andWhere('tag.name = :tagName', { tagName: `#${tagName}` })
+      .orderBy('post.date', 'DESC')
       .skip(parseInt(offset, 10))
       .take(parseInt(limit, 10))
       .getMany();
@@ -73,13 +69,15 @@ class PostRepository extends AbstractRepository<Post> {
   }
 
   public findOneWithComments(
-    id: number | string,
-    conditions: FindConditions<Post>
+    id: Post['id'],
+    userId: User['id']
   ): Promise<Post | undefined> {
-    return this.repository.findOne(id, {
-      where: conditions,
-      relations: ['comments'],
-    });
+    return this.repository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .where('post.id = :id AND post.userId = :userId', { id, userId })
+      .getOne();
   }
 
   public merge(post: Post, { date, body, publish, user }: PostFormData): Post {
@@ -88,22 +86,7 @@ class PostRepository extends AbstractRepository<Post> {
       body,
       publishedAt: publish ? new Date() : post.publishedAt,
       user,
-      tags: this.createTags(body, user || post.user),
     });
-  }
-
-  private createTags(postBody: Post['body'], user: User): Tag[] {
-    const regex = new RegExp(' #\\w+', 'g');
-    const tagNames = postBody.match(regex);
-    const tagAttributes: DeepPartial<Tag>[] = [];
-
-    if (tagNames) {
-      tagNames.forEach((name) => {
-        tagAttributes.push({ name, user });
-      });
-    }
-
-    return this.manager.create(Tag, tagAttributes);
   }
 }
 
