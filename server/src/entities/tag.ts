@@ -16,8 +16,8 @@ class Tag {
   @Column()
   public name: string;
 
-  // relationships
-  @ManyToOne(() => User, (user) => user.tags)
+  // relations
+  @ManyToOne(() => User, (user) => user.tags, { onDelete: 'CASCADE' })
   public readonly user: User;
 
   @ManyToMany(() => Post)

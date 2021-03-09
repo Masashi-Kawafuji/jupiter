@@ -30,18 +30,18 @@ class PostImageUploadService extends MultipleUploader {
   }
 
   public async delete(imageIds: string[]): Promise<DeleteObjectsCommandOutput> {
-    const deletableImages = this.post.images.filter(
-      (image) => !imageIds.includes(image.id.toString())
+    const imagesToDelete = this.post.images.filter((image) =>
+      imageIds.includes(image.id.toString())
     );
 
     this.post.images = this.post.images.filter(
-      (image) => !deletableImages.includes(image)
+      (image) => !imagesToDelete.includes(image)
     );
 
     const command = new DeleteObjectsCommand({
       Bucket: this.bucket,
       Delete: {
-        Objects: deletableImages.map((image) => {
+        Objects: imagesToDelete.map((image) => {
           const Key = image.url.replace(`${this.baseUrl}/`, '');
           return { Key };
         }),

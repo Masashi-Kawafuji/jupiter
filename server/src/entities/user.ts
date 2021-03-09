@@ -42,7 +42,7 @@ class User {
   @UpdateDateColumn()
   public updatedAt: Date;
 
-  // relationships
+  // relations
   @OneToMany(() => Post, (post) => post.user)
   public posts: Post[];
 

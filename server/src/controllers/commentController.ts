@@ -8,6 +8,7 @@ import User from '../entities/user';
 type CommentControllerLocals = {
   user: User;
   post: Post;
+  comment?: Comment;
 };
 
 export const createComment: RequestHandler = async (req, res) => {
@@ -25,6 +26,25 @@ export const createComment: RequestHandler = async (req, res) => {
   } else {
     await manager.save(comment);
     res.status(201).json(comment);
+  }
+};
+
+export const replyToComment: RequestHandler = async (req, res) => {
+  const { comment } = res.locals as CommentControllerLocals;
+
+  const manager = getManager();
+  const reply = manager.create(Comment, { ...req.body, parent: comment });
+
+  const errors = await validate(reply, {
+    forbidUnknownValues: true,
+    validationError: { target: false },
+  });
+
+  if (errors.length > 0) {
+    res.status(422).json(errors);
+  } else {
+    await manager.save(reply);
+    res.status(201).json(reply);
   }
 };
 

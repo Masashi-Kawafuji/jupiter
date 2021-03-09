@@ -7,6 +7,7 @@ import Image from '../entities/image';
 import PostImageUploadService from '../services/PostImageUploadService';
 import PostRepository from '../repositories/PostRepository';
 import TagRepository from '../repositories/TagRepository';
+import Tag from '../entities/tag';
 
 type SearchQuery = Record<'q' | 'offset' | 'limit', string>;
 
@@ -121,9 +122,9 @@ export const updatePost: RequestHandler = async (req, res, next) => {
 
       try {
         // delete images.
-        const { deletableImageIds } = req.body;
-        if (deletableImageIds) {
-          await postImageUploader.delete(deletableImageIds);
+        const { imageIdsToDelete } = req.body;
+        if (imageIdsToDelete) {
+          await postImageUploader.delete(imageIdsToDelete);
           post.images = postImageUploader.post.images;
         }
 

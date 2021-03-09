@@ -39,7 +39,7 @@ class Post {
   @UpdateDateColumn()
   public updatedAt: Date;
 
-  // relationships
+  // relations
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   public readonly user: User;
 
