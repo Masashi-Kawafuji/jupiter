@@ -1,6 +1,6 @@
 import {
   EntityRepository,
-  AbstractRepository,
+  Repository,
   Not,
   IsNull,
   Like,
@@ -15,14 +15,14 @@ type PostFormData = Record<'date' | 'body' | 'publish', string> & {
 };
 
 @EntityRepository(Post)
-class PostRepository extends AbstractRepository<Post> {
+class PostRepository extends Repository<Post> {
   public search(
     q: string,
     offset: string,
     limit: string,
     conditions: FindConditions<Post>
   ): Promise<Post[]> {
-    return this.repository.find({
+    return this.find({
       where: {
         ...conditions,
         body: Like(`%${q}%`),
@@ -42,8 +42,7 @@ class PostRepository extends AbstractRepository<Post> {
     limit: string,
     userId: User['id']
   ): Promise<Post[]> {
-    return this.repository
-      .createQueryBuilder('post')
+    return this.createQueryBuilder('post')
       .innerJoinAndSelect(
         'post_tags_tag',
         'post_tags_tag',
@@ -52,7 +51,7 @@ class PostRepository extends AbstractRepository<Post> {
       .innerJoinAndSelect('tag', 'tag', 'tag.id = post_tags_tag.tagId')
       .where('post.userId = :userId', { userId })
       .andWhere('post.publishedAt IS NOT NULL')
-      .andWhere('tag.name = :tagName', { tagName: `#${tagName}` })
+      .andWhere('tag.name = :tagName', { tagName })
       .orderBy('post.date', 'DESC')
       .skip(parseInt(offset, 10))
       .take(parseInt(limit, 10))
@@ -60,7 +59,7 @@ class PostRepository extends AbstractRepository<Post> {
   }
 
   public findPublished(conditions: FindConditions<Post>): Promise<Post[]> {
-    return this.repository.find({
+    return this.find({
       where: { ...conditions, publishedAt: Not(IsNull()) },
       order: {
         date: 'DESC',
@@ -70,18 +69,19 @@ class PostRepository extends AbstractRepository<Post> {
 
   public findOneWithComments(
     id: Post['id'],
-    userId: User['id']
+    conditions: FindConditions<Post>
   ): Promise<Post | undefined> {
-    return this.repository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.comments', 'comment')
-      .leftJoinAndSelect('comment.user', 'user')
-      .where('post.id = :id AND post.userId = :userId', { id, userId })
-      .getOne();
+    return this.findOne(id, {
+      relations: ['comments'],
+      where: conditions,
+    });
   }
 
-  public merge(post: Post, { date, body, publish, user }: PostFormData): Post {
-    return this.repository.merge(post, {
+  public mergeFormData(
+    post: Post,
+    { date, body, publish, user }: PostFormData
+  ): Post {
+    return this.merge(post, {
       date: new Date(date),
       body,
       publishedAt: publish ? new Date() : post.publishedAt,

@@ -24,7 +24,7 @@ class Post {
   @IsDate()
   public date: Date;
 
-  @Column('text', { nullable: true })
+  @Column('text')
   @IsNotEmpty({
     message: '本文を入力してください。',
   })
@@ -53,7 +53,10 @@ class Post {
   })
   public images: Image[];
 
-  @ManyToMany(() => Tag, (tag) => tag.posts, { cascade: true })
+  @ManyToMany(() => Tag, (tag) => tag.posts, {
+    cascade: true,
+    orphanedRowAction: 'delete',
+  })
   @JoinTable()
   public tags: Tag[];
 }

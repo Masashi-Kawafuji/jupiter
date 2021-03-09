@@ -26,7 +26,10 @@ class Comment {
   public updatedAt: Date;
 
   // relationships
-  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.comments, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   public readonly user: User;
 
   @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })

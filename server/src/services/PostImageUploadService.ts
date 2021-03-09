@@ -4,9 +4,7 @@ import {
   DeleteObjectsCommand,
   DeleteObjectsCommandOutput,
 } from '@aws-sdk/client-s3';
-import { getManager } from 'typeorm';
 import Post from '../entities/post';
-import Image from '../entities/image';
 import MultipleUploader from './uploader/multiple-uploader';
 
 class PostImageUploadService extends MultipleUploader {
@@ -31,11 +29,14 @@ class PostImageUploadService extends MultipleUploader {
     return this.upload(buffers);
   }
 
-  public async delete(
-    imageIds: (number | string)[]
-  ): Promise<DeleteObjectsCommandOutput> {
-    const manager = getManager();
-    const deletableImages = await manager.findByIds(Image, imageIds);
+  public async delete(imageIds: string[]): Promise<DeleteObjectsCommandOutput> {
+    const deletableImages = this.post.images.filter(
+      (image) => !imageIds.includes(image.id.toString())
+    );
+
+    this.post.images = this.post.images.filter(
+      (image) => !deletableImages.includes(image)
+    );
 
     const command = new DeleteObjectsCommand({
       Bucket: this.bucket,

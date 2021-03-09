@@ -45,10 +45,9 @@ export const postDetail: RequestHandler<{ postId: Post['id'] }> = async (
 ) => {
   const user = res.locals.user as User;
   const postRepository = getCustomRepository(PostRepository);
-  const post = await postRepository.findOneWithComments(
-    req.params.postId,
-    user.id
-  );
+  const post = await postRepository.findOneWithComments(req.params.postId, {
+    user,
+  });
 
   if (post) res.json(post);
   else res.status(404).json({ message: '投稿は見つかりませんでした。' });
@@ -58,7 +57,7 @@ export const createPost: RequestHandler = async (req, res, next) => {
   const user = res.locals.user as User;
   const post = new Post();
   const postRepository = getCustomRepository(PostRepository);
-  postRepository.merge(post, { ...req.body, user });
+  postRepository.mergeFormData(post, { ...req.body, user });
 
   const errors = await validate(post, {
     forbidUnknownValues: true,
@@ -107,7 +106,7 @@ export const updatePost: RequestHandler = async (req, res, next) => {
 
   if (post) {
     const postRepository = getCustomRepository(PostRepository);
-    postRepository.merge(post, { ...req.body });
+    postRepository.mergeFormData(post, { ...req.body });
 
     const errors = await validate(post, {
       forbidUnknownValues: true,
@@ -124,14 +123,8 @@ export const updatePost: RequestHandler = async (req, res, next) => {
         // delete images.
         const { deletableImageIds } = req.body;
         if (deletableImageIds) {
-          deletableImageIds.forEach((id: string) => {
-            const index = post.images.findIndex(
-              (image) => image.id === parseInt(id, 10)
-            );
-            post.images.splice(index, 1);
-          });
-
           await postImageUploader.delete(deletableImageIds);
+          post.images = postImageUploader.post.images;
         }
 
         if (req.files) {
